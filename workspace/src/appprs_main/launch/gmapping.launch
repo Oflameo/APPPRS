@@ -1,0 +1,29 @@
+<launch>
+  <node name="hokuyo" pkg="hokuyo_node" type="hokuyo_node" respawn="false" output="screen">
+    <!-- false: Starts up faster, but timestamps will be inaccurate. --> 
+    <param name="calibrate_time" type="bool" value="true"/> 
+    <!-- Set the port to connect to here -->
+    <param name="port" type="string" value="/dev/ttyACM0"/> 
+    <param name="intensity" type="bool" value="false"/>
+    <param name="max_ang" value="2.0"/>
+    <param name="min_ang" value="2.0"/>
+  </node>
+
+  <node name="gmapping_node" pkg="gmapping" type="slam_gmapping" respawn="false" output="screen">
+    <param name="scan" value="scan"/>
+    <param name="xmin" value="-50.0"/>
+    <param name="xmax" value="50.0"/>
+    <param name="ymin" value="-50.0"/>
+    <param name="ymax" value="50.0"/>
+    <param name="delta" value="0.05"/>
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="baselink_laser_broadcaster" args="0 0 0 0 0 0 1 base_link laser 100" />
+  
+  <node pkg="tf" type="static_transform_publisher" name="odom_baselink_broadcaster" args="0 0 0 0 0 0 1 odom base_link 100" />
+  
+  <!-- 
+  <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(find appprs_main)/config/rviz.rviz"/>
+  -->
+  
+</launch>
