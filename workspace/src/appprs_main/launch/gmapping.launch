@@ -9,8 +9,8 @@
     <!-- Set the port to connect to here -->
     <param name="port" type="string" value="/dev/serial/by-id/usb-Hokuyo_Data_Flex_for_USB_URG-Series_USB_Driver-if00"/> 
     <param name="intensity" type="bool" value="false"/>
-    <param name="max_ang" value="2.0"/>
-    <param name="min_ang" value="-2.0"/>
+    <param name="max_ang" value="2.2689 "/>
+    <param name="min_ang" value="-2.2689 "/>
   </node>
 
   <node name="gmapping_node" pkg="gmapping" type="slam_gmapping" respawn="false" output="screen">
