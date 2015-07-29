@@ -55,7 +55,6 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "tf_listener"); //Make listening node
   ros::NodeHandle n;
 
-  ROS_INFO_STREAM("test0");
   broadcaster = new tf::TransformBroadcaster();
 
 
@@ -63,7 +62,6 @@ int main(int argc, char **argv)
     g_oldTime=ros::Time::now().toSec(); //Because ROS
   }
 
-  ROS_INFO_STREAM("test1");
   ros::Subscriber sub = n.subscribe("/testDat", 10, chatterCallback); //Read Arduino
 
   ros::spin(); //spin me right round baby right round
