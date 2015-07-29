@@ -21,6 +21,7 @@ double cnvGyX(int GyX); //function prototype
 double cnvGyY(int GyY); //function prototype
 double cnvGyZ(int GyZ); //function prototype
 
+tf::TransformBroadcaster* broadcaster;
 
 //Callback Function
 void chatterCallback(const std_msgs::Int16MultiArray& test)
@@ -37,31 +38,31 @@ void chatterCallback(const std_msgs::Int16MultiArray& test)
 
   ROS_INFO("X=%f, Y=%f, Yaw = %f degrees", g_x, g_y,g_yaw); //print results
   g_oldTime=newTime; //record the time
+
+  broadcaster->sendTransform(
+      tf::StampedTransform(
+          tf::Transform(tf::Quaternion(g_pitch, g_roll, g_yaw, 1), tf::Vector3(g_x, g_y, 0)),
+          ros::Time::now(),"odom", "base_link")); //Transmit TF
+  ROS_INFO_STREAM("Transform send");
 }
 
 
 //Main Function
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "listener"); //Make listening node
+  ros::init(argc, argv, "tf_listener"); //Make listening node
   ros::NodeHandle n;
-  ros::init(argc, argv, "my_tf_broadcaster"); //Make broadcasting node
-  ros::NodeHandle node;
+
+  ROS_INFO_STREAM("test0");
+  broadcaster = new tf::TransformBroadcaster();
 
 
-  if (g_oldTime==0)
-  {
-  g_oldTime=ros::Time::now().toSec(); //Because ROS
+  if (g_oldTime==0) {
+    g_oldTime=ros::Time::now().toSec(); //Because ROS
   }
 
-
-  ros::Subscriber sub = n.subscribe("testDat", 1000, chatterCallback); //Read Arduino
- 
-  tf::TransformBroadcaster broadcaster;
-  broadcaster.sendTransform(
-    tf::StampedTransform(
-       tf::Transform(tf::Quaternion(g_pitch, g_roll, g_yaw, 1), tf::Vector3(g_x, g_y, 0)),
-         ros::Time::now(),"world", "IMU")); //Transmit TF
+  ROS_INFO_STREAM("test1");
+  ros::Subscriber sub = n.subscribe("/testDat", 10, chatterCallback); //Read Arduino
 
   ros::spin(); //spin me right round baby right round
 
@@ -73,16 +74,16 @@ int main(int argc, char **argv)
 
 double cnvGyX(int GyX)
 {
-return ((double)GyX+353.16)*250/32768;
+  return ((double)GyX+353.16)*250/32768;
 }
 
 double cnvGyY(int GyY)
 {
-return ((double)GyY-65.41)*250/32768;
+  return ((double)GyY-65.41)*250/32768;
 }
 
 double cnvGyZ(int GyZ)
 {
-return ((double)GyZ-61.26)*250/32768;
+  return ((double)GyZ-61.26)*250/32768;
 }
 

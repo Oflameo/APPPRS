@@ -1,8 +1,6 @@
 <launch>
  
 <include file="$(find appprs_main)/launch/gmapping.launch"/>
+<include file="$(find appprs_main)/launch/dead_reckoning.launch"/>
 
- <node pkg="rosserial_python" type="serial_node.py" name="serial_driver" args="/dev/serial/by-id/usb-Arduino__www.arduino.cc__Arduino_Mega_2560_6493832333135111B211-if00" />
-
-  <node pkg="beginner_tutorials" type="listener" name="serial_to_tf" />
 </launch>
