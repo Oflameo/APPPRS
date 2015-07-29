@@ -39,9 +39,10 @@ void chatterCallback(const std_msgs::Int16MultiArray& test)
   ROS_INFO("X=%f, Y=%f, Yaw = %f degrees", g_x, g_y,g_yaw); //print results
   g_oldTime=newTime; //record the time
 
+
   broadcaster->sendTransform(
       tf::StampedTransform(
-          tf::Transform(tf::Quaternion(g_pitch, g_roll, g_yaw, 1), tf::Vector3(g_x, g_y, 0)),
+          tf::Transform(tf::createQuaternionFromRPY(g_roll*PI/180, g_pitch*PI/180, g_yaw*PI/180), tf::Vector3(g_x, g_y, 0)),
           ros::Time::now(),"odom", "base_link")); //Transmit TF
   ROS_INFO_STREAM("Transform send");
 }
