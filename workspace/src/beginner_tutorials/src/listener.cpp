@@ -9,6 +9,7 @@
 #include <tf/transform_broadcaster.h>
 //#include "cmath.h"
 
+const float dist_per_tick = 1.1*0.5*0.001;//units are meters
 
 //Instantiate  global variables
 double g_x=0, g_y=0;
@@ -33,8 +34,8 @@ void chatterCallback(const std_msgs::Int16MultiArray& test)
   g_pitch+=cnvGyX(test.data[1])*(newTime-g_oldTime); //discreet integration to calc pitch
   g_roll+=cnvGyY(test.data[2])*(newTime-g_oldTime);  //discreet integration to calc roll
 
-  g_x+=cos(g_yaw*PI/180)*test.data[4]*1.1*1/1000; //units are meters
-  g_y+=sin(g_yaw*PI/180)*test.data[4]*1.1*1/1000; //units are meters
+  g_x+=cos(g_yaw*PI/180)*test.data[4]*dist_per_tick;
+  g_y+=sin(g_yaw*PI/180)*test.data[4]*dist_per_tick;
 
   ROS_INFO("X=%f, Y=%f, Yaw = %f degrees", g_x, g_y,g_yaw); //print results
   g_oldTime=newTime; //record the time
