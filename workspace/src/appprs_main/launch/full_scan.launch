@@ -1,0 +1,6 @@
+<launch>
+ 
+<include file="$(find appprs_main)/launch/scanner.launch"/>
+<include file="$(find appprs_main)/launch/dead_reckoning.launch"/>
+
+</launch>
