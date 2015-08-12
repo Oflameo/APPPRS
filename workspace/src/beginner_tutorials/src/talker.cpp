@@ -44,7 +44,7 @@ int main(int argc, char **argv)
    * than we can send them, the number here specifies how many messages to
    * buffer up before throwing some away.
    */
-  ros::Publisher chatter_pub = n.advertise<std_msgs::String>("cmd_msg", 1000);
+  ros::Publisher chatter_pub = n.advertise<std_msgs::Int16>("cmd_msg", 1000);
 
   ros::Rate loop_rate(10);
 
@@ -62,9 +62,9 @@ int main(int argc, char **argv)
 	std_msgs::Int16 cmd_msg
     //std::stringstream ss;
     //ss << "hello world " << count;
-    msg.data = 15*sin(ros::Time::now().toSec();
+    msg.data = 15*sin(3*ros::Time::now().toSec());
 
-    ROS_INFO("%s", msg.data.c_str());
+    ROS_INFO("%d", cmd_msg.data);
 
     /**
      * The publish() function is how you send messages. The parameter
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
      * given as a template parameter to the advertise<>() call, as was done
      * in the constructor above.
      */
-    chatter_pub.publish(msg);
+    chatter_pub.publish(cmd_msg);
 
     ros::spinOnce();
 

@@ -2,7 +2,7 @@
  * rosserial::std_msgs::Time Test
  * Publishes current time
  */
-
+ #include <Arduino.h>
 #include <ros.h>
 #include <stdint.h>
 //#include <ros/time.
@@ -19,7 +19,7 @@
 #include<Wire.h> //wire library is just for I2C stuff
 //#include <std_msgs/Int32MultiArray.h>
 
-#include <servo>
+#include <Servo.h>
 
 
 const int MPU=0x68;  // I2C address of the MPU-60D0
@@ -32,6 +32,7 @@ int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ,dist,tacState, totalDist = 0;
 ros::NodeHandle  nh;
 
 //std_msgs::Float32MultiArray test;
+
 std_msgs:: Int16MultiArray test;
 ros::Publisher p("testDat", &test);
 
@@ -42,9 +43,15 @@ Servo steeringServo;
 int maxSteerAngle = 35;
 int servoTrim = 5;  //positive trim goes left
 int servoRange = 90;  //rotational range of servo, from full CW to full CCW
+int steeringDemand;
 //************************
 
 
+void servo_cb( const std_msgs::Int16& cmd_msg){
+setServo(cmd_msg.data);
+}
+
+ros::Subscriber<std_msgs::Int16> sub("servo", servo_cb);
 
 
 void setup()
@@ -67,6 +74,7 @@ void setup()
   //test.layout.dim[0].size = 8;
   //test.layout.dim[0].stride = 1*8;
   test.layout.data_offset = 0;
+  nh.subscribe(sub);
   nh.advertise(p);
   totalDist=0;
   attachInterrupt(1, TachRead, CHANGE);
@@ -80,8 +88,13 @@ void setup()
 
   //Steering setup
   steeringServo.attach(steeringServoPin);
-  int steeringDemand = 0;
+  steeringDemand = 0;
 
+  setServo(-15);
+   delay(250);
+  setServo(15);
+ delay(250);
+setServo(0); 
   
   
 
@@ -143,10 +156,6 @@ test.data[1]=GyX;
 test.data[2]=GyY;
 test.data[3]=GyZ;
   
-//test.data[1]=1;
-//test.data[2]=2;
-//test.data[3]=3;
-  
 test.data[4]=dist;
 totalDist=totalDist+dist;
 dist=0;  
@@ -158,7 +167,7 @@ dist=0;
   //Serial.print(" | GyY = "); Serial.print(test.data[5]);
   //Serial.print(" | GyZ = "); Serial.println(test.data[6]);
 
-  steeringDemand = 0;  // Get steering angle demand from ROS
+ steeringDemand = 0;  // Get steering angle demand from ROS
   
   setServo(steeringDemand);
   
