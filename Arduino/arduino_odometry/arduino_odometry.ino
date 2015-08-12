@@ -19,6 +19,8 @@
 #include<Wire.h> //wire library is just for I2C stuff
 //#include <std_msgs/Int32MultiArray.h>
 
+#include <servo>
+
 
 const int MPU=0x68;  // I2C address of the MPU-60D0
 const int tachPinA = 2;
@@ -32,6 +34,16 @@ ros::NodeHandle  nh;
 //std_msgs::Float32MultiArray test;
 std_msgs:: Int16MultiArray test;
 ros::Publisher p("testDat", &test);
+
+const int steeringServoPin = 11;
+
+//**Servo setup***********
+Servo steeringServo;
+int maxSteerAngle = 35;
+int servoTrim = 5;  //positive trim goes left
+int servoRange = 90;  //rotational range of servo, from full CW to full CCW
+//************************
+
 
 
 
@@ -60,6 +72,17 @@ void setup()
   attachInterrupt(1, TachRead, CHANGE);
 
 
+
+  //Set pin 52 to high (5v) to act as power for IMU breakout board
+  pinMode(52,OUTPUT);
+  digitalWrite(52,HIGH);
+
+
+  //Steering setup
+  steeringServo.attach(steeringServoPin);
+  int steeringDemand = 0;
+
+  
   
 
 }
@@ -135,6 +158,10 @@ dist=0;
   //Serial.print(" | GyY = "); Serial.print(test.data[5]);
   //Serial.print(" | GyZ = "); Serial.println(test.data[6]);
 
+  steeringDemand = 0;  // Get steering angle demand from ROS
+  
+  setServo(steeringDemand);
+  
   
   p.publish( &test );
   nh.spinOnce();
@@ -150,4 +177,9 @@ void TachRead ()
       dist--;
 }
 
+void setServo(int _angleIn)
+{
+  _angleIn = -1*constrain(_angleIn, -1*maxSteerAngle, maxSteerAngle) + servoTrim + 90;
+  steeringServo.write(_angleIn);
+}
 
