@@ -2,8 +2,17 @@ Installation
 - sudo apt-get install ros-indigo-pr2-simulator 
 - sudo apt-get install ros-indigo-pr2-teleop
 
+For now, we need to set a sim-link in the gazebo model folder:
+cd .gazebo/models
+ln -s /home/username/full/path/to/apppr_main/maps/track
+
+We also have to fix a broken path in the gazebo setup to enable auto-download of the model files from the internet:
+sudo gedit /etc/share/gazebo-2.2/setup.sh
+The second line contains a broken path to the model site. Correct it such that it now reads:
+export GAZEBO_MODEL_DATABASE_URI=http://models.gazebosim.org
+
 
 Run
-- roslaunch gazebo_ros empty_world.launch
+- roslaunch appprs_main gazebo_ny-track.launch 
 - roslaunch pr2_gazebo pr2.launch
 - roslaunch pr2_teleop teleop_keyboard.launch
