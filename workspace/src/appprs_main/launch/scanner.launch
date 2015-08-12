@@ -23,7 +23,8 @@
   <!-- Set the name of the map yaml file: can be overridden on the command line. -->
   <arg name="map" default="map.yaml" />
  <!-- Run the map server with the desired map -->
-  <node name="map_server" pkg="map_server" type="map_server" args="/home/jamie/APPPRS/workspace/maps/myApt/AptRacetrack/$(arg map)"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find appprs_main)/maps/$(arg map)"/>
+
 
  <!-- Run AMCL -->
   <node pkg="amcl" type="amcl" name="amcl" args="scan:=scan" output="screen">
