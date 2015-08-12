@@ -1,0 +1,9 @@
+Installation
+- sudo apt-get install ros-indigo-pr2-simulator 
+- sudo apt-get install ros-indigo-pr2-teleop
+
+
+Run
+- roslaunch gazebo_ros empty_world.launch
+- roslaunch pr2_gazebo pr2.launch
+- roslaunch pr2_teleop teleop_keyboard.launch
