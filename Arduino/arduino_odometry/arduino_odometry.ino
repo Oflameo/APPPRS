@@ -9,7 +9,7 @@
 //#include <std_msgs/MultiArrayLayout.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/Int16MultiArray.h>
-//#include <std_msgs/Int32.h>
+#include <std_msgs/Float32.h>
 
 
 //#include <std_msgs/Float32MultiArray.h>
@@ -47,11 +47,11 @@ int steeringDemand;
 //************************
 
 
-void servo_cb( const std_msgs::Int16& cmd_msg){
+void servo_cb( const std_msgs::Float32& cmd_msg){
 setServo(cmd_msg.data);
 }
 
-ros::Subscriber<std_msgs::Int16> sub("servo", servo_cb);
+ros::Subscriber<std_msgs::Float32> sub("servo", servo_cb);
 
 
 void setup()
@@ -75,6 +75,7 @@ void setup()
   //test.layout.dim[0].stride = 1*8;
   test.layout.data_offset = 0;
   nh.subscribe(sub);
+  
   nh.advertise(p);
   totalDist=0;
   attachInterrupt(1, TachRead, CHANGE);
@@ -167,9 +168,9 @@ dist=0;
   //Serial.print(" | GyY = "); Serial.print(test.data[5]);
   //Serial.print(" | GyZ = "); Serial.println(test.data[6]);
 
- steeringDemand = 0;  // Get steering angle demand from ROS
+ //steeringDemand = 0;  // Get steering angle demand from ROS
   
-  setServo(steeringDemand);
+  //setServo(steeringDemand);
   
   
   p.publish( &test );
@@ -186,7 +187,7 @@ void TachRead ()
       dist--;
 }
 
-void setServo(int _angleIn)
+void setServo(float _angleIn)
 {
   _angleIn = -1*constrain(_angleIn, -1*maxSteerAngle, maxSteerAngle) + servoTrim + 90;
   steeringServo.write(_angleIn);
