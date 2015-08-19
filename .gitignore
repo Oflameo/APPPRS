@@ -27,4 +27,5 @@
 *.out
 *.app
 
+*.*~
 workspace/src/CMakeLists.txt

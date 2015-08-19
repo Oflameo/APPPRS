@@ -88,13 +88,16 @@ void setup()
   steeringServo.attach(steeringServoPin);
   steeringDemand = 0;
 
+
   //Steering test and reset
+
   setServo(-15);
   delay(250);
   setServo(15);
   delay(250);
   setServo(0); 
  }
+
 
 void loop()
 {  
