@@ -23,13 +23,13 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 find_package(catkin REQUIRED COMPONENTS tf)
 
 
-add_executable(talker src/talker.cpp)
-target_link_libraries(talker ${catkin_LIBRARIES})
-add_dependencies(talker beginner_tutorials_generate_messages_cpp)
+add_executable(servoTester src/servoTester.cpp)
+target_link_libraries(servoTester ${catkin_LIBRARIES})
+add_dependencies(servoTester beginner_tutorials_generate_messages_cpp)
 
-add_executable(listener src/listener.cpp)
-target_link_libraries(listener ${catkin_LIBRARIES})
-add_dependencies(listener beginner_tutorials_generate_messages_cpp)
+add_executable(arduinoListener src/arduinoListener.cpp)
+target_link_libraries(arduinoListener ${catkin_LIBRARIES})
+add_dependencies(arduinoListener beginner_tutorials_generate_messages_cpp)
 
 add_executable(add_two_ints_server src/add_two_ints_server.cpp)
 target_link_libraries(add_two_ints_server ${catkin_LIBRARIES})

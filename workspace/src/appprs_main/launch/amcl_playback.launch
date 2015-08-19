@@ -1,0 +1,28 @@
+<launch>
+
+  <param name="use_sim_time" value="true" />
+
+  <!--node pkg="laser_filters" type="scan_to_scan_filter_chain" name="laser_filter">
+    <rosparam command="load" file="$(find appprs_main)/config/laser_filter.yaml" />
+    <remap from="scan" to="base_scan" />
+  </node-->
+
+  <node name="amcl_node" pkg="amcl" type="amcl" respawn="false" output="screen">
+    <param name="initial_pose_x" value="0"/>         <!-- x value of the intial pose -->
+    <param name="initial_pose_x" value="0"/>         <!-- y value of the intial pose -->
+    <param name="initial_pose_a" value="0.0"/>       <!-- yaw value of the intial pose in radians -->
+    <param name="use_map_topic" value="true"/>       <!-- subscribes to map topic rather than making  -->
+    <param name="ymax" value="50.0"/>
+    <param name="delta" value="0.05"/>        <!-- resolution of the octomap -->
+    <param name="maxUrange" value="5.0"/>     <!-- usable range of the laser scanner -->
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="baselink_laser_broadcaster" args="0 0 0 0 0 0 1 base_link laser 100" />
+  
+  <!--node pkg="tf" type="static_transform_publisher" name="odom_baselink_broadcaster" args="0 0 0 0 0 0 1 odom base_link 100" /-->
+  
+  <!-- 
+  <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(find appprs_main)/config/rviz.rviz"/>
+  -->
+  
+</launch>
