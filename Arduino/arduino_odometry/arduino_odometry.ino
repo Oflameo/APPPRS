@@ -90,11 +90,13 @@ void setup()
   steeringServo.attach(steeringServoPin);
   steeringDemand = 0;
 
+
+  //Move steering servo to confirm operational
   setServo(-15);
    delay(250);
   setServo(15);
- delay(250);
-setServo(0); 
+   delay(250);
+  setServo(0); 
   
   
 
