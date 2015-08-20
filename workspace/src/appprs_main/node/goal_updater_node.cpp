@@ -10,5 +10,9 @@
 int main(int argc, char** argv){
   ros::init(argc, argv, "goal_updater_node");
 
+  GoalPositionUpdater *gpu = new GoalPositionUpdater();
+  ros::spin();
+  delete gpu; gpu = NULL;
+
 }
 

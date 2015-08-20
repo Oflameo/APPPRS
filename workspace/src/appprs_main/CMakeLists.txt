@@ -102,6 +102,9 @@ include_directories(
  add_library(appprs_main
    src/GoalPositionUpdater.cpp
  )
+target_link_libraries(appprs_main
+  ${catkin_LIBRARIES}
+)
 
 add_executable(goal_updater_node node/goal_updater_node.cpp)
 target_link_libraries(goal_updater_node
