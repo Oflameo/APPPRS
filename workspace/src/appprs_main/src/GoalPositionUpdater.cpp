@@ -8,7 +8,8 @@
 #include <Eigen/Dense>
 #include "appprs_main/GoalPositionUpdater.h"
 
-GoalPositionUpdater::GoalPositionUpdater() {
+GoalPositionUpdater::GoalPositionUpdater():
+goals_received_(0){
   goal_publisher_  = nh_.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 10);
   goal_subscriber_ = nh_.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 10, &GoalPositionUpdater::goal_callback, this);
   timer_ = nh_.createTimer(ros::Duration(0.5), &GoalPositionUpdater::timer_callback, this);
@@ -22,9 +23,12 @@ GoalPositionUpdater::~GoalPositionUpdater() {
 void GoalPositionUpdater::goal_callback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
   last_goal_ = current_goal_;
   current_goal_ = Eigen::Vector3d(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
+  ++goals_received_;
+  std::cout << "New goal position received." << std::endl;
 }
 
 void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
+  if (goals_received_ < 1) return;
   tf::StampedTransform transform;
   try{
     tf_listener_.lookupTransform("/base_link", "/map", ros::Time(0), transform);

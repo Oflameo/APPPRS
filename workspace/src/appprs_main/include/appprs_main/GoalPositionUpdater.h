@@ -29,6 +29,7 @@ private:
   Eigen::Vector3d last_goal_, current_goal_;
   ros::Timer timer_;
   double distance_threshold_;
+  int goals_received_;
 };
 
 #endif /* GOALPOSITIONUPDATER_H_ */
