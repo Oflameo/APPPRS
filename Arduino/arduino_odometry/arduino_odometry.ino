@@ -124,7 +124,9 @@ test.data[4]=dist;
 totalDist=totalDist+dist;
 dist=0;  
 
-  //Serial.print("\n Total Dist = "); Serial.print(totalDist);
+  Serial.print("X: "); Serial.print(GyX,4);
+  Serial.print("  Y: "); Serial.print(GyY,4);
+  Serial.print("  Z: "); Serial.println(GyZ),4;
 
   p.publish( &test );
   nh.spinOnce();
