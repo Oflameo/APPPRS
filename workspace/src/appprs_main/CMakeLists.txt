@@ -5,6 +5,8 @@ project(appprs_main)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  geometry_msgs
   pcl_ros
   tf
 )
@@ -81,7 +83,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES appprs_main
-#  CATKIN_DEPENDS pcl_ros tf
+#  CATKIN_DEPENDS roscpp pcl_ros tf
 #  DEPENDS system_lib
 )
 
@@ -91,27 +93,21 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
+include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-## Declare a cpp library
-# add_library(appprs_main
-#   src/${PROJECT_NAME}/appprs_main.cpp
-# )
+# Declare a cpp library
+ add_library(appprs_main
+   src/GoalPositionUpdater.cpp
+ )
 
-## Declare a cpp executable
-# add_executable(appprs_main_node src/appprs_main_node.cpp)
-
-## Add cmake target dependencies of the executable/library
-## as an example, message headers may need to be generated before nodes
-# add_dependencies(appprs_main_node appprs_main_generate_messages_cpp)
-
-## Specify libraries to link a library or executable target against
-# target_link_libraries(appprs_main_node
-#   ${catkin_LIBRARIES}
-# )
+add_executable(goal_updater_node node/goal_updater_node.cpp)
+target_link_libraries(goal_updater_node
+  ${catkin_LIBRARIES}
+  appprs_main
+)
 
 #############
 ## Install ##
