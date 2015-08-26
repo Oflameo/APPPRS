@@ -52,19 +52,15 @@ unsigned int numSamples;
 
 
 const int calCycles = 400;
-long GyXcal = 0;
-long GyYcal = 0;
-long GyZcal = 0;
-long AcXcal = 0;
-long AcYcal = 0;
-long AcZcal = 0;
 
-  long AcXAccm;
-  long AcYAccm;
-  long AcZAccm;
-  long GyXAccm;
-  long GyYAccm;
-  long GyZAccm;
+int16_t GyXcal = 0;
+int16_t GyYcal = 0;
+int16_t GyZcal = 0;
+int16_t AcXcal = 0;
+int16_t AcYcal = 0;
+int16_t AcZcal = 0;
+
+int16_t AcXAccm, AcYAccm, AcZAccm, GyXAccm, GyYAccm, GyZAccm;
 
 
 
@@ -204,7 +200,7 @@ void loop()
     
     numSamples++;
     
-    delay(10);
+    delay(1);
     
   } while (millis() <= sampleStartTime + sampleDurration);
     
