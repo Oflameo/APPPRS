@@ -44,6 +44,13 @@ int servoRange = 90;  //rotational range of servo, from full CW to full CCW
 int steeringDemand;
 //************************
 
+
+//**Loop control variables****
+int sampleDurration = 100; // time to sample sensors in ms
+unsigned long sampleStartTime;
+unsigned int numSamples;
+
+
 const int calCycles = 400;
 long GyXcal = 0;
 long GyYcal = 0;
@@ -51,6 +58,15 @@ long GyZcal = 0;
 long AcXcal = 0;
 long AcYcal = 0;
 long AcZcal = 0;
+
+  long AcXAccm;
+  long AcYAccm;
+  long AcZAccm;
+  long GyXAccm;
+  long GyYAccm;
+  long GyZAccm;
+
+
 
 void servo_cb( const std_msgs::Float32& cmd_msg)
   {
@@ -95,7 +111,7 @@ void setup()
   steeringServo.attach(steeringServoPin);
   steeringDemand = 0;
   
-  delay(1000);
+  delay(3000);
   
   // ** Sample gyro for set number of cycles **
   for (int i = 0; i < calCycles; i++) {
@@ -140,26 +156,66 @@ void setup()
 
 void loop()
 {  
-  Wire.beginTransmission(MPU);
-  Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
-  Wire.endTransmission(false);
-  Wire.requestFrom(MPU,14,true);  // request a total of 14 registers
- 
-  // All of these numbers are 2 bytes long, signed floats
-  AcX=Wire.read()<<8|Wire.read();  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)     
-  AcY=Wire.read()<<8|Wire.read();  // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
-  AcZ=Wire.read()<<8|Wire.read();  // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
-  Tmp=Wire.read()<<8|Wire.read();  // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
-  GyX=Wire.read()<<8|Wire.read();  // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
-  GyY=Wire.read()<<8|Wire.read();  // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
-  GyZ=Wire.read()<<8|Wire.read();  // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
   
-  AcX = AcX - AcXcal;
-  AcY = AcY - AcYcal;
-  AcZ = AcZ - AcZcal;
-  GyX = GyX - GyXcal;
-  GyY = GyY - GyYcal;
-  GyZ = GyZ - GyZcal;
+  
+
+  
+
+  AcXAccm = 0;
+  AcYAccm = 0;
+  AcZAccm = 0;
+  GyXAccm = 0;
+  GyYAccm = 0;
+  GyZAccm = 0;
+
+  numSamples = 0;
+
+  sampleStartTime = millis();
+  
+  do
+  {
+    Wire.beginTransmission(MPU);
+    Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
+    Wire.endTransmission(false);
+    Wire.requestFrom(MPU,14,true);  // request a total of 14 registers
+
+    // All of these numbers are 2 bytes long, signed floats
+    AcX=Wire.read()<<8|Wire.read();  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)     
+    AcY=Wire.read()<<8|Wire.read();  // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+    AcZ=Wire.read()<<8|Wire.read();  // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+    Tmp=Wire.read()<<8|Wire.read();  // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
+    GyX=Wire.read()<<8|Wire.read();  // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
+    GyY=Wire.read()<<8|Wire.read();  // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
+    GyZ=Wire.read()<<8|Wire.read();  // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
+    
+    AcX = AcX - AcXcal;
+    AcY = AcY - AcYcal;
+    AcZ = AcZ - AcZcal;
+    GyX = GyX - GyXcal;
+    GyY = GyY - GyYcal;
+    GyZ = GyZ - GyZcal;
+    
+    AcXAccm += AcX;
+    AcYAccm += AcY;
+    AcZAccm += AcZ;
+    GyXAccm += GyX;
+    GyYAccm += GyY;
+    GyZAccm += GyZ;
+    
+    numSamples++;
+    
+    delay(10);
+    
+  } while (millis() <= sampleStartTime + sampleDurration);
+    
+  AcX = AcXAccm / numSamples;
+  AcY = AcYAccm / numSamples;
+  AcZ = AcZAccm / numSamples;
+  GyX = GyXAccm / numSamples;
+  GyY = GyYAccm / numSamples;
+  GyZ = GyZAccm / numSamples;
+  
+  
   
   test.data[1]=GyX;
   test.data[2]=GyY;
@@ -168,14 +224,16 @@ void loop()
   test.data[4]=dist;
   totalDist=totalDist+dist;
   dist=0;  
+  
+ // Serial.println(millis());
 
-  Serial.print("X: "); Serial.print(GyX);
-  Serial.print("\tY: "); Serial.print(GyY);
-  Serial.print("\tZ: "); Serial.println(GyZ);
+//  Serial.print("X: "); Serial.print(GyX);
+//  Serial.print("\tY: "); Serial.print(GyY);
+//  Serial.print("\tZ: "); Serial.println(GyZ);
 
   p.publish( &test );
   nh.spinOnce();
-  delay(100);
+//  delay(100);
 }
 
 
