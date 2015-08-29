@@ -37,7 +37,7 @@ void chatterCallback(const std_msgs::Int16MultiArray& test)
   g_x+=cos(g_yaw*PI/180)*test.data[4]*dist_per_tick;
   g_y+=sin(g_yaw*PI/180)*test.data[4]*dist_per_tick;
 
- // ROS_INFO("X=%f, Y=%f, Yaw = %f degrees", g_x, g_y,g_yaw); //print results
+  ROS_INFO("X=%f, Y=%f, Yaw = %f degrees", g_x, g_y,g_yaw); //print results
   g_oldTime=newTime; //record the time
 
 
@@ -74,16 +74,23 @@ int main(int argc, char **argv)
 
 double cnvGyX(int GyX)
 {
-  return ((double)GyX+353.16)*250/32768;
+  //return ((double)GyX+353.16)*250/32768;
+  return ((double)GyX)*250/32768;
+
 }
 
 double cnvGyY(int GyY)
 {
-  return ((double)GyY-65.41)*250/32768;
+  //return ((double)GyY-65.41)*250/32768;
+  ROS_INFO("RawArduino = %d units", GyY); //print results
+  return ((double)GyY)*250/32768;
+
 }
 
 double cnvGyZ(int GyZ)
 {
-  return ((double)GyZ-61.26)*250/32768;
+  //return ((double)GyZ-61.26)*250/32768;
+  return ((double)GyZ)*250/32768;
+  
 }
 

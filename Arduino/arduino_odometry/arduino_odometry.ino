@@ -168,8 +168,8 @@ void loop()
 
   sampleStartTime = millis();
   
-  do
-  {
+  //do
+  //{
     Wire.beginTransmission(MPU);
     Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
     Wire.endTransmission(false);
@@ -191,25 +191,25 @@ void loop()
     GyY = GyY - GyYcal;
     GyZ = GyZ - GyZcal;
     
-    AcXAccm += AcX;
-    AcYAccm += AcY;
-    AcZAccm += AcZ;
-    GyXAccm += GyX;
-    GyYAccm += GyY;
-    GyZAccm += GyZ;
+    //AcXAccm += AcX;
+    //AcYAccm += AcY;
+    //AcZAccm += AcZ;
+    //GyXAccm += GyX;
+    //GyYAccm += GyY;
+    //GyZAccm += GyZ;
     
-    numSamples++;
+    //numSamples++;
     
-    delay(1);
+   // delay(1);
     
-  } while (millis() <= sampleStartTime + sampleDurration);
+  //} while (millis() <= sampleStartTime + sampleDurration);
     
-  AcX = AcXAccm / numSamples;
-  AcY = AcYAccm / numSamples;
-  AcZ = AcZAccm / numSamples;
-  GyX = GyXAccm / numSamples;
-  GyY = GyYAccm / numSamples;
-  GyZ = GyZAccm / numSamples;
+  //AcX = AcXAccm / numSamples;
+  //AcY = AcYAccm / numSamples;
+  //AcZ = AcZAccm / numSamples;
+  //GyX = GyXAccm / numSamples;
+  //GyY = GyYAccm / numSamples;
+  //GyZ = GyZAccm / numSamples;
   
   
   
@@ -229,7 +229,7 @@ void loop()
 
   p.publish( &test );
   nh.spinOnce();
-//  delay(100);
+  delay(100);
 }
 
 
