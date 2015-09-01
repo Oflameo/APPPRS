@@ -25,7 +25,7 @@
     <param name="initial_pose_a" value="0.0"/>       <!-- yaw value of the intial pose in radians -->
     <param name="use_map_topic" value="true"/>       <!-- subscribes to map topic rather than making  -->
     <param name="ymax" value="50.0"/>
-    <param name="delta" value="0.05"/>        <!-- resolution of the octomap -->
+    <param name="delta" value="0.02"/>        <!-- resolution of the octomap -->
     <param name="maxUrange" value="5.0"/>     <!-- usable range of the laser scanner -->
   </node>
 
