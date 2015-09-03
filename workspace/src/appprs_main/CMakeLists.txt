@@ -9,6 +9,8 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   pcl_ros
   tf
+  std_msgs
+  genmsg
 )
 
 ## System dependencies are found with CMake's conventions
@@ -66,10 +68,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   std_msgs  # Or other packages containing msgs
+ )
 
 ###################################
 ## catkin specific configuration ##
@@ -111,6 +113,15 @@ target_link_libraries(goal_updater_node
   ${catkin_LIBRARIES}
   appprs_main
 )
+
+
+add_executable(world_to_robot_frame src/world_to_robot_frame.cpp)
+target_link_libraries(world_to_robot_frame ${catkin_LIBRARIES})
+add_dependencies(world_to_robot_frame beginner_tutorials_gencpp)
+
+
+
+
 
 #############
 ## Install ##
