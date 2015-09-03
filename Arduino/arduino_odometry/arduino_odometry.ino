@@ -60,7 +60,7 @@ int16_t AcXcal = 0;
 int16_t AcYcal = 0;
 int16_t AcZcal = 0;
 
-int16_t AcXAccm, AcYAccm, AcZAccm, GyXAccm, GyYAccm, GyZAccm;
+int32_t AcXAccm, AcYAccm, AcZAccm, GyXAccm, GyYAccm, GyZAccm;
 
 
 
@@ -168,8 +168,8 @@ void loop()
 
   sampleStartTime = millis();
   
-  //do
-  //{
+  do
+  {
     Wire.beginTransmission(MPU);
     Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
     Wire.endTransmission(false);
@@ -191,25 +191,25 @@ void loop()
     GyY = GyY - GyYcal;
     GyZ = GyZ - GyZcal;
     
-    //AcXAccm += AcX;
-    //AcYAccm += AcY;
-    //AcZAccm += AcZ;
-    //GyXAccm += GyX;
-    //GyYAccm += GyY;
-    //GyZAccm += GyZ;
+    AcXAccm += AcX;
+    AcYAccm += AcY;
+    AcZAccm += AcZ;
+    GyXAccm += GyX;
+    GyYAccm += GyY;
+    GyZAccm += GyZ;
     
-    //numSamples++;
+    numSamples++;
     
    // delay(1);
     
-  //} while (millis() <= sampleStartTime + sampleDurration);
-    
-  //AcX = AcXAccm / numSamples;
-  //AcY = AcYAccm / numSamples;
-  //AcZ = AcZAccm / numSamples;
-  //GyX = GyXAccm / numSamples;
-  //GyY = GyYAccm / numSamples;
-  //GyZ = GyZAccm / numSamples;
+  } while (millis() <= sampleStartTime + sampleDurration);
+   
+  AcX = AcXAccm / numSamples;
+  AcY = AcYAccm / numSamples;
+  AcZ = AcZAccm / numSamples;
+  GyX = GyXAccm / numSamples;
+  GyY = GyYAccm / numSamples;
+  GyZ = GyZAccm / numSamples;
   
   
   
