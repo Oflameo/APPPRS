@@ -1,0 +1,8 @@
+float32 Xway_r
+float32 Yway_r
+float32 Thway_r
+
+---
+std_msgs/Float32MultiArray pathX
+std_msgs/Float32MultiArray pathY
+

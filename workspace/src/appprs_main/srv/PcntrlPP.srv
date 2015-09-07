@@ -1,0 +1,10 @@
+float32 Xway_w
+float32 Yway_w
+float32 Thway_w
+float32 XRob_w
+float32 YRob_w
+float32 ThRob_w
+
+---
+float32 Th_steer_r
+float32 Vel_r
