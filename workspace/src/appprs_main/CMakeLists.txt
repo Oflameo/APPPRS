@@ -10,9 +10,16 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   tf
   std_msgs
+
   genmsg
 )
 
+
+add_service_files(
+   FILES worldToRobot.srv
+   FILES PcntrlPP.srv
+   FILES localPP_SRV.srv
+   )
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -84,9 +91,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES appprs_main
-#  CATKIN_DEPENDS roscpp pcl_ros tf
-#  DEPENDS system_lib
+  LIBRARIES appprs_main
+  CATKIN_DEPENDS roscpp pcl_ros tf
+  DEPENDS system_lib
 )
 
 ###########
@@ -114,10 +121,22 @@ target_link_libraries(goal_updater_node
   appprs_main
 )
 
+add_executable(talker src/talker.cpp)
+target_link_libraries(talker ${catkin_LIBRARIES})
+add_dependencies(talker appprs_main_generate_messages_cpp)
 
 add_executable(world_to_robot_frame src/world_to_robot_frame.cpp)
 target_link_libraries(world_to_robot_frame ${catkin_LIBRARIES})
-add_dependencies(world_to_robot_frame beginner_tutorials_gencpp)
+add_dependencies(world_to_robot_frame appprs_main_generate_gencpp)
+
+
+add_executable(P_control_path_planner src/P_control_path_planner.cpp)
+target_link_libraries(P_control_path_planner ${catkin_LIBRARIES})
+add_dependencies(P_control_path_planner appprs_main_gencpp)
+
+add_executable(localPP src/localPP.cpp)
+target_link_libraries(localPP ${catkin_LIBRARIES})
+add_dependencies(localPP appprs_main_gencpp)
 
 
 
