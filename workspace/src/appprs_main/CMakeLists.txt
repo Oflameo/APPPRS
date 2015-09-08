@@ -16,9 +16,10 @@ find_package(catkin REQUIRED COMPONENTS
 
 
 add_service_files(
-   FILES worldToRobot.srv
-   FILES PcntrlPP.srv
-   FILES localPP_SRV.srv
+   FILES
+     worldToRobot.srv
+     PcntrlPP.srv
+     localPP_SRV.srv
    )
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
