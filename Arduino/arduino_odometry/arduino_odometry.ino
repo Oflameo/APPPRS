@@ -10,6 +10,7 @@
 #include <std_msgs/Int16.h>
 #include <std_msgs/Int16MultiArray.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Float32MultiArray.h>
 
 
 //#include <std_msgs/Float32MultiArray.h>
@@ -64,14 +65,17 @@ int32_t AcXAccm, AcYAccm, AcZAccm, GyXAccm, GyYAccm, GyZAccm;
 
 
 
-void servo_cb( const std_msgs::Float32& cmd_msg)
+//void carCommand_cb( const std_msgs::Float32MultiArray& cmd_msg)
+void carCommand_cb( const std_msgs::Float32& cmd_msg)
   {
   setServo(cmd_msg.data);
+//    setServo(cmd_msg.data[1]);
+
   }
 
 
-ros::Subscriber<std_msgs::Float32> sub("servo", servo_cb);
-
+//ros::Subscriber<std_msgs::Float32MultiArray> sub("carCommand", carCommand_cb);
+ros::Subscriber<std_msgs::Float32> sub("carCommand", carCommand_cb);
 
 void setup()
 {
@@ -106,6 +110,8 @@ void setup()
   //Steering setup
   steeringServo.attach(steeringServoPin);
   steeringDemand = 0;
+  setServo(-15);
+  
   
   delay(3000);
   
@@ -143,10 +149,13 @@ void setup()
   delay(500);
   //Steering test and reset
   setServo(-15);
+  //Serial.print("Servo-15");
   delay(250);
   setServo(15);
+  //Serial.print("Servo 15");
   delay(250);
   setServo(0); 
+  //Serial.print("Servo 0");
  }
 
 
@@ -168,7 +177,7 @@ void loop()
 
   sampleStartTime = millis();
   
-  do
+  /*do
   {
     Wire.beginTransmission(MPU);
     Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
@@ -204,14 +213,36 @@ void loop()
     
   } while (millis() <= sampleStartTime + sampleDurration);
    
+   
+   
   AcX = AcXAccm / numSamples;
   AcY = AcYAccm / numSamples;
   AcZ = AcZAccm / numSamples;
   GyX = GyXAccm / numSamples;
   GyY = GyYAccm / numSamples;
   GyZ = GyZAccm / numSamples;
+  */
   
+    Wire.beginTransmission(MPU);
+    Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
+    Wire.endTransmission(false);
+    Wire.requestFrom(MPU,14,true);  // request a total of 14 registers
   
+   AcX=Wire.read()<<8|Wire.read();  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)     
+    AcY=Wire.read()<<8|Wire.read();  // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+    AcZ=Wire.read()<<8|Wire.read();  // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+    Tmp=Wire.read()<<8|Wire.read();  // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
+    GyX=Wire.read()<<8|Wire.read();  // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
+    GyY=Wire.read()<<8|Wire.read();  // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
+    GyZ=Wire.read()<<8|Wire.read();  // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
+    
+    AcX = AcX - AcXcal;
+    AcY = AcY - AcYcal;
+    AcZ = AcZ - AcZcal;
+    GyX = GyX - GyXcal;
+    GyY = GyY - GyYcal;
+    GyZ = GyZ - GyZcal;
+
   
   test.data[1]=GyX;
   test.data[2]=GyY;
@@ -223,9 +254,9 @@ void loop()
   
  // Serial.println(millis());
 
-//  Serial.print("X: "); Serial.print(GyX);
-//  Serial.print("\tY: "); Serial.print(GyY);
-//  Serial.print("\tZ: "); Serial.println(GyZ);
+  //Serial.print("GX: "); Serial.print(GyX);
+  //Serial.print("\tGY: "); Serial.print(GyY);
+  //Serial.print("\tGZ: "); Serial.println(GyZ);
 
   p.publish( &test );
   nh.spinOnce();

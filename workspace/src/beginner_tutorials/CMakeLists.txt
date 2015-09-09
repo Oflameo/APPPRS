@@ -7,7 +7,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs genmsg)
 ## Declare ROS messages and services
 add_message_files(FILES Num.msg)
 add_message_files(FILES int32Arrays.msg)
-add_service_files(FILES AddTwoInts.srv)
+#add_service_files(FILES AddTwoInts.srv)
 
 ## Generate added messages and services
 generate_messages(DEPENDENCIES std_msgs)
@@ -23,21 +23,21 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 find_package(catkin REQUIRED COMPONENTS tf)
 
 
-add_executable(servoTester src/servoTester.cpp)
-target_link_libraries(servoTester ${catkin_LIBRARIES})
-add_dependencies(servoTester beginner_tutorials_generate_messages_cpp)
+#add_executable(servoTester src/servoTester.cpp)
+#target_link_libraries(servoTester ${catkin_LIBRARIES})
+#add_dependencies(servoTester beginner_tutorials_generate_messages_cpp)
 
-add_executable(arduinoListener src/arduinoListener.cpp)
-target_link_libraries(arduinoListener ${catkin_LIBRARIES})
-add_dependencies(arduinoListener beginner_tutorials_generate_messages_cpp)
+#add_executable(arduinoListener src/arduinoListener.cpp)
+#target_link_libraries(arduinoListener ${catkin_LIBRARIES})
+#add_dependencies(arduinoListener beginner_tutorials_generate_messages_cpp)
 
-add_executable(add_two_ints_server src/add_two_ints_server.cpp)
-target_link_libraries(add_two_ints_server ${catkin_LIBRARIES})
-add_dependencies(add_two_ints_server beginner_tutorials_gencpp)
+#add_executable(add_two_ints_server src/add_two_ints_server.cpp)
+#target_link_libraries(add_two_ints_server ${catkin_LIBRARIES})
+#add_dependencies(add_two_ints_server beginner_tutorials_gencpp)
 
-add_executable(add_two_ints_client src/add_two_ints_client.cpp)
-target_link_libraries(add_two_ints_client ${catkin_LIBRARIES})
-add_dependencies(add_two_ints_client beginner_tutorials_gencpp)
+#add_executable(add_two_ints_client src/add_two_ints_client.cpp)
+#target_link_libraries(add_two_ints_client ${catkin_LIBRARIES})
+#add_dependencies(add_two_ints_client beginner_tutorials_gencpp)
 
 
 

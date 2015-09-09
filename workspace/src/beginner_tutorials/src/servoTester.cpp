@@ -1,13 +1,14 @@
 #include "ros/ros.h"
 //#include "std_msgs/Int16.h"
 #include "std_msgs/Float32.h"
+#include "std_msgs/Float32MultiArray.h"
 #include "time.h"
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "servo");//start node
+  ros::init(argc, argv, "carCommand");//start node
   ros::NodeHandle n;//create handle
-  ros::Publisher chatter_pub = n.advertise<std_msgs::Float32>("servo", 1000); //create a publisher
+  ros::Publisher chatter_pub = n.advertise<std_msgs::Float32>("carCommand", 1000); //create a publisher
 
   ros::Rate loop_rate(50); //set goal refresh rate (hz)
  

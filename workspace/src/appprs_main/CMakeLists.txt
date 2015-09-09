@@ -124,13 +124,21 @@ target_link_libraries(goal_updater_node
   appprs_main
 )
 
+add_executable(servoTester src/servoTester.cpp)
+target_link_libraries(servoTester ${catkin_LIBRARIES})
+add_dependencies(servoTester appprs_main_generate_messages_cpp)
+
 add_executable(talker src/talker.cpp)
 target_link_libraries(talker ${catkin_LIBRARIES})
 add_dependencies(talker appprs_main_generate_messages_cpp)
 
-add_executable(world_to_robot_frame src/world_to_robot_frame.cpp)
-target_link_libraries(world_to_robot_frame ${catkin_LIBRARIES})
-add_dependencies(world_to_robot_frame appprs_main_generate_gencpp)
+add_executable(PIDSteerCntrl src/PIDSteerCntrl.cpp)
+target_link_libraries(PIDSteerCntrl ${catkin_LIBRARIES})
+add_dependencies(PIDSteerCntrl appprs_main_generate_messages_cpp)
+
+##add_executable(world_to_robot_frame src/world_to_robot_frame.cpp)
+##target_link_libraries(world_to_robot_frame ${catkin_LIBRARIES})
+##add_dependencies(world_to_robot_frame appprs_main_generate_gencpp)
 
 
 #add_executable(P_control_path_planner src/P_control_path_planner.cpp)
