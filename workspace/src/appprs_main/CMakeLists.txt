@@ -19,7 +19,7 @@ add_service_files(
    FILES
      worldToRobot.srv
      PcntrlPP.srv
-     localPP_SRV.srv
+#     localPP_SRV.srv
    )
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -111,6 +111,8 @@ include_directories(
 # Declare a cpp library
  add_library(appprs_main
    src/GoalPositionUpdater.cpp
+   src/localPP.cpp
+   src/p_control_path_planner.cpp
  )
 target_link_libraries(appprs_main
   ${catkin_LIBRARIES}
@@ -131,13 +133,13 @@ target_link_libraries(world_to_robot_frame ${catkin_LIBRARIES})
 add_dependencies(world_to_robot_frame appprs_main_generate_gencpp)
 
 
-add_executable(P_control_path_planner src/P_control_path_planner.cpp)
-target_link_libraries(P_control_path_planner ${catkin_LIBRARIES})
-add_dependencies(P_control_path_planner appprs_main_gencpp)
+#add_executable(P_control_path_planner src/P_control_path_planner.cpp)
+#target_link_libraries(P_control_path_planner ${catkin_LIBRARIES})
+#add_dependencies(P_control_path_planner appprs_main_gencpp)
 
-add_executable(localPP src/localPP.cpp)
-target_link_libraries(localPP ${catkin_LIBRARIES})
-add_dependencies(localPP appprs_main_gencpp)
+#add_executable(localPP src/localPP.cpp)
+#target_link_libraries(localPP ${catkin_LIBRARIES})
+#add_dependencies(localPP appprs_main_gencpp)
 
 
 

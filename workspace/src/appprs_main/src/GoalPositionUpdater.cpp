@@ -7,6 +7,8 @@
 
 #include <Eigen/Dense>
 #include "appprs_main/GoalPositionUpdater.h"
+#include "appprs_main/localPP.h"
+#include "appprs_main/p_control_path_planner.h"
 
 GoalPositionUpdater::GoalPositionUpdater():
 goals_received_(0){
