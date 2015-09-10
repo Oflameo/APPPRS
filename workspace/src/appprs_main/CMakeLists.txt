@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(appprs_main)
+set(CMAKE_CXX_FLAGS "-std=c++0x")
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -10,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   tf
   std_msgs
+  nav_msgs
 
   genmsg
 )
@@ -132,9 +134,9 @@ add_executable(talker src/talker.cpp)
 target_link_libraries(talker ${catkin_LIBRARIES})
 add_dependencies(talker appprs_main_generate_messages_cpp)
 
-add_executable(PIDSteerCntrl src/PIDSteerCntrl.cpp)
-target_link_libraries(PIDSteerCntrl ${catkin_LIBRARIES})
-add_dependencies(PIDSteerCntrl appprs_main_generate_messages_cpp)
+#add_executable(PIDSteerCntrl src/PIDSteerCntrl.cpp)
+#target_link_libraries(PIDSteerCntrl ${catkin_LIBRARIES})
+#add_dependencies(PIDSteerCntrl appprs_main_generate_messages_cpp)
 
 ##add_executable(world_to_robot_frame src/world_to_robot_frame.cpp)
 ##target_link_libraries(world_to_robot_frame ${catkin_LIBRARIES})

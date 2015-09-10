@@ -8,7 +8,9 @@
 #ifndef LOCALPP_H_
 #define LOCALPP_H_
 
-std::vector<std::pair<float,float> > getPath(float xa, float ya, float Tha, float xb, float yb, float Thb);
+#include <geometry_msgs/PoseStamped.h>
+
+std::vector<geometry_msgs::PoseStamped > getPath(float xa, float ya, float Tha, float xb, float yb, float Thb);
 
 
 
