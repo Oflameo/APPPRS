@@ -28,6 +28,7 @@ std::vector<std::pair<float,float> > getPath(float xa, float ya, float Tha, floa
   float kb, kdb;
   float a0, a1, a2, a3, a4, a5, a6, a7;
   float b0, b1, b2, b3, b4, b5, b6, b7;
+  float Thway_w;
 
 //  xa=0;                    //X coord starting point
 //  ya=0;                    //Y coord starting point
@@ -83,7 +84,12 @@ std::vector<std::pair<float,float> > getPath(float xa, float ya, float Tha, floa
   {
     float u=i/numWays;
     px=a0+a1*u+a2*pow(u,2)+a3*pow(u,3)+a4*pow(u,4)+a5*pow(u,5)+a6*pow(u,6)+a7*pow(u,7);
-    py=b0+a1*u+b2*pow(u,2)+b3*pow(u,3)+b4*pow(u,4)+b5*pow(u,5)+b6*pow(u,6)+b7*pow(u,7);
+    py=b0+b1*u+b2*pow(u,2)+b3*pow(u,3)+b4*pow(u,4)+b5*pow(u,5)+b6*pow(u,6)+b7*pow(u,7);
+   
+    pxdu=a1+2*a2*pow(u,1)+3*a3*pow(u,2)+4*a4*pow(u,3)+5*a5*pow(u,4)+6*a6*pow(u,5)+7*a7*pow(u,6);
+    pydu=b1+2*b2*pow(u,1)+3*b3*pow(u,2)+4*b4*pow(u,3)+5*b5*pow(u,4)+6*b6*pow(u,5)+7*b7*pow(u,6);
+    
+    Thway_w=atan(pydu/pxdu);
     return_points.push_back(std::pair<float, float>(px, py));
   }
 
