@@ -80,6 +80,8 @@ std::vector<std::pair<float,float> > getPath(float xa, float ya, float Tha, floa
   float px;     //multi array of x points
   float py;     //multi array of y points
   std::vector<std::pair<float,float> > return_points;
+  
+
   for(int i=0; i<numWays; i++)
   {
     float u=i/numWays;
@@ -89,7 +91,7 @@ std::vector<std::pair<float,float> > getPath(float xa, float ya, float Tha, floa
     pxdu=a1+2*a2*pow(u,1)+3*a3*pow(u,2)+4*a4*pow(u,3)+5*a5*pow(u,4)+6*a6*pow(u,5)+7*a7*pow(u,6);
     pydu=b1+2*b2*pow(u,1)+3*b3*pow(u,2)+4*b4*pow(u,3)+5*b5*pow(u,4)+6*b6*pow(u,5)+7*b7*pow(u,6);
     
-    Thway_w=atan(pydu/pxdu);
+    Thway_w=atan2(pydu,pxdu);
     return_points.push_back(std::pair<float, float>(px, py));
   }
 
