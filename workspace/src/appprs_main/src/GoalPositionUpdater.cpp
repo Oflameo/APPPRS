@@ -29,7 +29,6 @@ goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_in
   std::ifstream waypointFile ("/tmp/waypoints.txt");
   std::string line;
   if (waypointFile.is_open()) {
-    nav_msgs::Path path;
     while ( std::getline (waypointFile, line) ) {
       std::vector<float> number_list;
       boost::char_separator<char> sep(", ");
@@ -51,16 +50,13 @@ goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_in
       new_pose.pose.orientation.z = number_list[5];
       new_pose.pose.orientation.w = number_list[6];
       global_waypoint_list_.push_back(new_pose);
-      path.poses.push_back(new_pose);
 //      Eigen::Vector3f pt = Eigen::Vector3f(number_list[0], number_list[1], number_list[2]);
 //      Eigen::Quaternionf quat = Eigen::Quaternionf(number_list[6], number_list[3], number_list[4], number_list[5]);
       float angle = acos(number_list[6])*2.0;
       //std::cout << angle*360/M_PI << std::endl;
     }
     waypointFile.close();
-    path.header.frame_id="/map";
-    global_path_publisher_.publish(path);
-    std::cout << "Way point file with " << path.poses.size() << " way points has been successfully parsed." << std::endl;
+    std::cout << "Way point file with " << global_waypoint_list_.size() << " way points has been successfully parsed." << std::endl;
 
     local_waypoint_list_ = getPath(0.0,
                                    0.0,
@@ -68,10 +64,6 @@ goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_in
                                    global_waypoint_list_[current_global_waypoint_index_].pose.position.x,
                                    global_waypoint_list_[current_global_waypoint_index_].pose.position.y,
                                    acos(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w)*2.0);
-    nav_msgs::Path local_path;
-    local_path.header.frame_id="/map";
-    local_path.poses = local_waypoint_list_;
-    local_path_publisher_.publish(local_path);
 
   } else {
     std::cout << "Failed to parse way point file" << std::endl;
@@ -134,10 +126,6 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
                                      global_waypoint_list_[current_global_waypoint_index_].pose.position.x,
                                      global_waypoint_list_[current_global_waypoint_index_].pose.position.y,
                                      acos(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w)*2.0);
-      nav_msgs::Path path;
-      path.header.frame_id="/map";
-      path.poses = local_waypoint_list_;
-      local_path_publisher_.publish(path);
       current_local_waypoint_index_ = 1;
     }
   }
