@@ -20,7 +20,7 @@ GoalPositionUpdater::GoalPositionUpdater():
 goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_index_(1){
   local_path_publisher_  = nh_.advertise<nav_msgs::Path>("/local_path", 10);
   global_path_publisher_ = nh_.advertise<nav_msgs::Path>("/global_path", 10);
-  goal_publisher_  = nh_.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 10);
+  goal_publisher_  = nh_.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal2", 10);
   new_command_publisher_ = nh_.advertise<std_msgs::Float32>("/carCommand", 1000);
   goal_subscriber_ = nh_.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 10, &GoalPositionUpdater::goal_callback, this);
   timer_ = nh_.createTimer(ros::Duration(0.1), &GoalPositionUpdater::timer_callback, this);
@@ -91,14 +91,22 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
   global_path.header.frame_id="/map";
   global_path.poses = global_waypoint_list_;
   global_path_publisher_.publish(global_path);
+  geometry_msgs::PoseStamped next_waypoint;
+  next_waypoint.pose = local_waypoint_list_[current_local_waypoint_index_].pose;
+  next_waypoint.header.frame_id = "/map";
+  next_waypoint.header.stamp = ros::Time::now();
+  goal_publisher_.publish(next_waypoint);
+
 //  if (goals_received_ < 1) return;
 
   //obtain current location
   tf::StampedTransform transform;
   try{
-    tf_listener_.lookupTransform("/base_link", "/map", ros::Time(0), transform);
+//    tf_listener_.lookupTransform("/base_link", "/map", ros::Time(0), transform);
+    tf_listener_.lookupTransform("/map", "/base_link", ros::Time(0), transform);
   }
   catch (tf::TransformException& ex){
+    //std::cout << "pose not received" << std::endl;
     return;
     //ROS_ERROR("%s",ex.what());
     //ros::Duration(1.0).sleep();
@@ -133,13 +141,23 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
   //compute new angle/vel
   computeAndPublishNextCommand(robot_pose(0),
                                robot_pose(1),
-                               acos(robot_quat.w())*2.0,
+                               acos(robot_quat.w())*2.0*-robot_quat.z()/fabs(robot_quat.z()),
                                local_waypoint_list_[current_local_waypoint_index_].pose.position.x,
                                local_waypoint_list_[current_local_waypoint_index_].pose.position.y,
                                acos(local_waypoint_list_[current_local_waypoint_index_].pose.orientation.w)*2.0);
+  //std::cout << "quat z comp " << robot_quat.z() << std::endl;
+  //std::cout << "quat w comp " << robot_quat.w() << std::endl;
 }
 
 int GoalPositionUpdater::checkPosition(float xc_w, float yc_w, float Xway_w, float Yway_w, float Thway_w) {
+
+  float distance = sqrt(pow(xc_w-Xway_w, 2)+pow(yc_w-Yway_w,2));
+  std::cout << "distance: " << sqrt(pow(xc_w-Xway_w, 2)+pow(yc_w-Yway_w,2)) << std::endl;
+  if (distance < 0.5)
+    return 1;
+  return 0;
+
+
 
   float a=cos(Thway_w*M_PI/180);
   float b=-sin(Thway_w*M_PI/180);
@@ -175,34 +193,45 @@ int GoalPositionUpdater::checkPosition(float xc_w, float yc_w, float Xway_w, flo
 void GoalPositionUpdater::computeAndPublishNextCommand(float XRob_w,
     float YRob_w, float ThRob_w, float Xway_w, float Yway_w, float Thway_w) {
 
-  float a, b, c, d, e,f, xnew, ynew;
+  float a, b, c, d, e,f;
   float xway_r, yway_r, Th_steer_r;
   float Vel_r;
 
-  a=cos(ThRob_w*M_PI/180);
-  b=-sin(ThRob_w*M_PI/180);
+  a=cos(ThRob_w);
+  b=-sin(ThRob_w);
   c=XRob_w;
-  d=sin(ThRob_w*M_PI/180);
-  e=cos(ThRob_w*M_PI/180);
+  d=sin(ThRob_w);
+  e=cos(ThRob_w);
   f=YRob_w;
+
+//  a=cos(ThRob_w*M_PI/180);
+//  b=-sin(ThRob_w*M_PI/180);
+//  c=XRob_w;
+//  d=sin(ThRob_w*M_PI/180);
+//  e=cos(ThRob_w*M_PI/180);
+//  f=YRob_w;
 
 
   xway_r=a*Xway_w+b*Yway_w+(-a*c-d*f)*1;
   yway_r=b*Xway_w+e*Yway_w+(-b*e-c*f)*1;
 
 
-  Th_steer_r=atan2(ynew,xnew)*180/M_PI;
+  //Th_steer_r=atan2(yway_r,xway_r)*180.0/M_PI;
+  float Th_to_waypoint = atan2(Yway_w-YRob_w, Xway_w-XRob_w);
+  Th_steer_r = Th_to_waypoint-ThRob_w;
 
-  if(abs(xnew)<.1) {
-    Th_steer_r=0;
-  }
+  std::cout << "angle to waypoint " << Th_to_waypoint*180/M_PI << std::endl;
+
+//  if(abs(xway_r)<.1) {
+//    Th_steer_r=0;
+//  }
 
   Vel_r=.25;
 
-  ROS_INFO("New Steer Angle is %f, New Velocity is %f", Th_steer_r, Vel_r);
+  ROS_INFO("New Steer Angle is %f, New Velocity is %f", Th_steer_r*180/M_PI, Vel_r); //Vel_r);
 
   std_msgs::Float32 cmd_msg;
-  cmd_msg.data=Th_steer_r;
+  cmd_msg.data=Th_steer_r*180/M_PI;
   new_command_publisher_.publish(cmd_msg); //publish message
 
 }

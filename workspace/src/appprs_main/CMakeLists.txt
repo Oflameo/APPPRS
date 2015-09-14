@@ -142,6 +142,9 @@ add_dependencies(talker appprs_main_generate_messages_cpp)
 ##target_link_libraries(world_to_robot_frame ${catkin_LIBRARIES})
 ##add_dependencies(world_to_robot_frame appprs_main_generate_gencpp)
 
+add_executable(arduinoListener node/arduinoListener.cpp)
+target_link_libraries(arduinoListener ${catkin_LIBRARIES})
+add_dependencies(arduinoListener appprs_main_generate_gencpp)
 
 #add_executable(P_control_path_planner src/P_control_path_planner.cpp)
 #target_link_libraries(P_control_path_planner ${catkin_LIBRARIES})

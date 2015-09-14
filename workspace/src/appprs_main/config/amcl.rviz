@@ -3,13 +3,7 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /Global Options1
-        - /Status1
-        - /LaserScan1
-        - /TF1
-        - /GlobalPath1
-        - /LocalPath1
+      Expanded: ~
       Splitter Ratio: 0.5
     Tree Height: 570
   - Class: rviz/Selection
@@ -30,7 +24,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: LaserScan
 Visualization Manager:
   Class: ""
   Displays:
@@ -94,13 +88,25 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        base_link:
+          Value: true
+        laser:
+          Value: true
+        map:
+          Value: true
+        odom:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        map:
+          odom:
+            base_link:
+              laser:
+                {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -183,7 +189,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.67971
+      Distance: 14.0628
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -195,10 +201,10 @@ Visualization Manager:
         Z: 0.73821
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.605399
+      Pitch: 0.745399
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.12533
+      Yaw: 3.50033
     Saved: ~
 Window Geometry:
   Displays:
