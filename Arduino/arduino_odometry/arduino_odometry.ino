@@ -2,7 +2,7 @@
  * rosserial::std_msgs::Time Test
  * Publishes current time
  */
- #include <Arduino.h>
+#include <Arduino.h>
 #include <ros.h>
 #include <stdint.h>
 //#include <ros/time.
@@ -36,14 +36,28 @@ std_msgs:: Int16MultiArray test;
 ros::Publisher p("testDat", &test);
 
 const int steeringServoPin = 11;
+const int speedServoPin = 12;
 
-//**Servo setup***********
+
+//**Steering Servo setup***********
 Servo steeringServo;
 int maxSteerAngle = 35;
 int servoTrim = 5;  //positive trim goes left
 int servoRange = 90;  //rotational range of servo, from full CW to full CCW
 int steeringDemand;
 //************************
+
+//**Velocity Servo setup***********
+Servo speedServo;
+int maxSpeed = 35;
+int speedTrim = 5;  //positive trim goes left
+int speedRange = 90;  //rotational range of servo, from full CW to full CCW
+int speedDemand;
+//************************
+
+
+
+
 
 
 //**Loop control variables****
@@ -66,16 +80,26 @@ int32_t AcXAccm, AcYAccm, AcZAccm, GyXAccm, GyYAccm, GyZAccm;
 
 
 //void carCommand_cb( const std_msgs::Float32MultiArray& cmd_msg)
-void carCommand_cb( const std_msgs::Float32& cmd_msg)
+void steerCommand_cb( const std_msgs::Float32& steer_cmd_msg)
   {
-  setServo(cmd_msg.data);
+  setServo(steer_cmd_msg.data);
+//    setServo(cmd_msg.data[1]);
+
+  }
+  
+  void speedCommand_cb( const std_msgs::Float32& speed_cmd_msg)
+  {
+  //setServo(cmd_msg.data);
 //    setServo(cmd_msg.data[1]);
 
   }
 
 
 //ros::Subscriber<std_msgs::Float32MultiArray> sub("carCommand", carCommand_cb);
-ros::Subscriber<std_msgs::Float32> sub("carCommand", carCommand_cb);
+ros::Subscriber<std_msgs::Float32> sub("steerCommand", steerCommand_cb);
+//ros::Subscriber<std_msgs::Float32> sub("speedCommand", carCommand_cb);
+
+
 
 void setup()
 {
@@ -110,6 +134,10 @@ void setup()
   //Steering setup
   steeringServo.attach(steeringServoPin);
   steeringDemand = 0;
+  speedServo.attach(speedServoPin);
+  speedDemand = 0;
+  
+  
   setServo(-15);
   
   
@@ -278,3 +306,8 @@ void setServo(float _angleIn)
   steeringServo.write(_angleIn);
 }
 
+void setSpeed(float _speedIn)
+{
+  _speedIn = -1*constrain(_speedIn, -1*maxSpeed, maxSpeed) + speedTrim + 90;
+  speedServo.write(_speedIn);
+}
