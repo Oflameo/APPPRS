@@ -5,6 +5,7 @@
  *      Author: vgrabe
  */
 
+#include <math.h>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -83,6 +84,13 @@ void GoalPositionUpdater::goal_callback(const geometry_msgs::PoseStamped::ConstP
 }
 
 void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
+
+  geometry_msgs::PoseStamped pose_msg = local_waypoint_list_[current_local_waypoint_index_];
+  tf::Transform transform_auxiliar;
+  transform_auxiliar.setOrigin(tf::Vector3(pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z));
+  transform_auxiliar.setRotation(tf::Quaternion( pose_msg.pose.orientation.x, pose_msg.pose.orientation.y, pose_msg.pose.orientation.z, pose_msg.pose.orientation.w));
+  tf_broadcaster_.sendTransform(tf::StampedTransform(transform_auxiliar, ros::Time::now(), "/map", "/waypoint"));
+
   nav_msgs::Path local_path;
   local_path.header.frame_id="/map";
   local_path.poses = local_waypoint_list_;
@@ -100,10 +108,9 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
 //  if (goals_received_ < 1) return;
 
   //obtain current location
-  tf::StampedTransform transform;
+  tf::StampedTransform transform_w_b;
   try{
-//    tf_listener_.lookupTransform("/base_link", "/map", ros::Time(0), transform);
-    tf_listener_.lookupTransform("/map", "/base_link", ros::Time(0), transform);
+    tf_listener_.lookupTransform("/map", "/base_link", ros::Time(0), transform_w_b);
   }
   catch (tf::TransformException& ex){
     //std::cout << "pose not received" << std::endl;
@@ -111,8 +118,8 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
     //ROS_ERROR("%s",ex.what());
     //ros::Duration(1.0).sleep();
   }
-  Eigen::Vector3d robot_pose = Eigen::Vector3d (transform.getOrigin().x(),transform.getOrigin().y(),transform.getOrigin().z());
-  Eigen::Quaterniond robot_quat = Eigen::Quaterniond (transform.getRotation().getW(), transform.getRotation().getX(), transform.getRotation().getY(), transform.getRotation().getZ());
+  Eigen::Vector3d robot_pose = Eigen::Vector3d (transform_w_b.getOrigin().x(),transform_w_b.getOrigin().y(),transform_w_b.getOrigin().z());
+  Eigen::Quaterniond robot_quat = Eigen::Quaterniond (transform_w_b.getRotation().getW(), transform_w_b.getRotation().getX(), transform_w_b.getRotation().getY(), transform_w_b.getRotation().getZ());
 
   int result = checkPosition(robot_pose(0),
                              robot_pose(1),
@@ -139,12 +146,7 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
   }
 
   //compute new angle/vel
-  computeAndPublishNextCommand(robot_pose(0),
-                               robot_pose(1),
-                               acos(robot_quat.w())*2.0*-robot_quat.z()/fabs(robot_quat.z()),
-                               local_waypoint_list_[current_local_waypoint_index_].pose.position.x,
-                               local_waypoint_list_[current_local_waypoint_index_].pose.position.y,
-                               acos(local_waypoint_list_[current_local_waypoint_index_].pose.orientation.w)*2.0);
+  computeAndPublishNextCommand();
   //std::cout << "quat z comp " << robot_quat.z() << std::endl;
   //std::cout << "quat w comp " << robot_quat.w() << std::endl;
 }
@@ -190,48 +192,23 @@ int GoalPositionUpdater::checkPosition(float xc_w, float yc_w, float Xway_w, flo
   return status;
 }
 
-void GoalPositionUpdater::computeAndPublishNextCommand(float XRob_w,
-    float YRob_w, float ThRob_w, float Xway_w, float Yway_w, float Thway_w) {
+void GoalPositionUpdater::computeAndPublishNextCommand() {
+  tf::StampedTransform transform_r_way;
+  try{
+    tf_listener_.lookupTransform("/base_link", "/waypoint", ros::Time(0), transform_r_way);
+  }
+  catch (tf::TransformException& ex){
+    return;
+  }
+  Eigen::Vector3d waypoint_pose = Eigen::Vector3d (transform_r_way.getOrigin().x(),transform_r_way.getOrigin().y(),transform_r_way.getOrigin().z());
 
-  float a, b, c, d, e,f;
-  float xway_r, yway_r, Th_steer_r;
-  float Vel_r;
-
-  a=cos(ThRob_w);
-  b=-sin(ThRob_w);
-  c=XRob_w;
-  d=sin(ThRob_w);
-  e=cos(ThRob_w);
-  f=YRob_w;
-
-//  a=cos(ThRob_w*M_PI/180);
-//  b=-sin(ThRob_w*M_PI/180);
-//  c=XRob_w;
-//  d=sin(ThRob_w*M_PI/180);
-//  e=cos(ThRob_w*M_PI/180);
-//  f=YRob_w;
-
-
-  xway_r=a*Xway_w+b*Yway_w+(-a*c-d*f)*1;
-  yway_r=b*Xway_w+e*Yway_w+(-b*e-c*f)*1;
-
-
-  //Th_steer_r=atan2(yway_r,xway_r)*180.0/M_PI;
-  float Th_to_waypoint = atan2(Yway_w-YRob_w, Xway_w-XRob_w);
-  Th_steer_r = Th_to_waypoint-ThRob_w;
-
-  std::cout << "angle to waypoint " << Th_to_waypoint*180/M_PI << std::endl;
-
-//  if(abs(xway_r)<.1) {
-//    Th_steer_r=0;
-//  }
-
-  Vel_r=.25;
-
-  ROS_INFO("New Steer Angle is %f, New Velocity is %f", Th_steer_r*180/M_PI, Vel_r); //Vel_r);
+  //std::cout << waypoint_pose << std::endl;
+  float theta = atan2(waypoint_pose[1], waypoint_pose[0]);
 
   std_msgs::Float32 cmd_msg;
-  cmd_msg.data=Th_steer_r*180/M_PI;
+  cmd_msg.data=std::min(std::max(-theta*180/M_PI, -35.0), 35.0);
+
+  std::cout << "Send angle: " << cmd_msg.data << std::endl;
   new_command_publisher_.publish(cmd_msg); //publish message
 
 }

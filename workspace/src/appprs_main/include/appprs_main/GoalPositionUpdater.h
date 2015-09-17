@@ -12,6 +12,7 @@
 #include <Eigen/Dense>
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
+#include <tf/transform_broadcaster.h>
 #include <geometry_msgs/PoseStamped.h>
 
 class GoalPositionUpdater {
@@ -25,6 +26,7 @@ public:
 private:
   ros::NodeHandle nh_;
   tf::TransformListener tf_listener_;
+  tf::TransformBroadcaster tf_broadcaster_;
   ros::Publisher goal_publisher_;
   ros::Publisher global_path_publisher_, local_path_publisher_;
   ros::Publisher new_command_publisher_;
@@ -37,7 +39,7 @@ private:
   size_t current_global_waypoint_index_, current_local_waypoint_index_;
 
   int checkPosition(float xc, float yc, float Xway, float Yway, float Thway);
-  void computeAndPublishNextCommand(float XRob_w, float YRob_w, float ThRob_w, float Xway_w, float Yway_w, float Thway_w);
+  void computeAndPublishNextCommand();
 
 };
 
