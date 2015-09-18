@@ -22,7 +22,8 @@ goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_in
   local_path_publisher_  = nh_.advertise<nav_msgs::Path>("/local_path", 10);
   global_path_publisher_ = nh_.advertise<nav_msgs::Path>("/global_path", 10);
   goal_publisher_  = nh_.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal2", 10);
-  new_command_publisher_ = nh_.advertise<std_msgs::Float32>("/steerCommand", 1000);
+  steer_command_publisher_ = nh_.advertise<std_msgs::Float32>("/steerCommand", 1000);
+  speed_command_publisher_ = nh_.advertise<std_msgs::Float32>("/steerCommand", 1000);
   goal_subscriber_ = nh_.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 10, &GoalPositionUpdater::goal_callback, this);
   timer_ = nh_.createTimer(ros::Duration(0.1), &GoalPositionUpdater::timer_callback, this);
   distance_threshold_ = 1.0;
@@ -209,6 +210,6 @@ void GoalPositionUpdater::computeAndPublishNextCommand() {
   steer_cmd_msg.data=std::min(std::max(-theta*180/M_PI, -35.0), 35.0);
 
   std::cout << "Send angle: " << steer_cmd_msg.data << std::endl;
-  new_command_publisher_.publish(steer_cmd_msg); //publish message
+  steer_command_publisher_.publish(steer_cmd_msg); //publish message
 
 }

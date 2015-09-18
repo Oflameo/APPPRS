@@ -29,7 +29,8 @@ private:
   tf::TransformBroadcaster tf_broadcaster_;
   ros::Publisher goal_publisher_;
   ros::Publisher global_path_publisher_, local_path_publisher_;
-  ros::Publisher new_command_publisher_;
+  ros::Publisher steer_command_publisher_;
+  ros::Publisher speed_command_publisher_;
   ros::Subscriber goal_subscriber_;
   Eigen::Vector3d last_goal_, current_goal_;
   ros::Timer timer_;

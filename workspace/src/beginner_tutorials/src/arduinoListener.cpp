@@ -37,7 +37,7 @@ void chatterCallback(const std_msgs::Int16MultiArray& test)
   g_x+=cos(g_yaw*PI/180)*test.data[4]*dist_per_tick;
   g_y+=sin(g_yaw*PI/180)*test.data[4]*dist_per_tick;
 
-  //ROS_INFO("X=%f, Y=%f, Yaw = %f degrees", g_x, g_y,g_yaw); //print results
+  ROS_INFO("X=%f, Y=%f, Yaw = %f degrees", g_x, g_y,g_yaw); //print results
   g_oldTime=newTime; //record the time
 
   broadcaster->sendTransform(
