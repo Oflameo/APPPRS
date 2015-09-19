@@ -2081,6 +2081,7 @@ ros-indigo-rosparam				install
 ros-indigo-rospy				install
 ros-indigo-rospy-tutorials			install
 ros-indigo-rosserial				install
+ros-indigo-rosserial-arduino			install
 ros-indigo-rosserial-client			install
 ros-indigo-rosserial-msgs			install
 ros-indigo-rosserial-python			install
