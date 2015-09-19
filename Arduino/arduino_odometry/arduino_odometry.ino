@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include <ros.h>
 #include <stdint.h>
-//#include <ros/time.
+#include <ros/time.h>
 //#include <std_msgs/MultiArrayLayout.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/Int16MultiArray.h>
@@ -28,6 +28,7 @@ const int tachPinA = 2;
 const int tachPinB = 3;
 
 int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ,dist,tacState, totalDist = 0;
+double oldTime
 
 ros::NodeHandle  nh;
 
@@ -82,22 +83,22 @@ int32_t AcXAccm, AcYAccm, AcZAccm, GyXAccm, GyYAccm, GyZAccm;
 //void carCommand_cb( const std_msgs::Float32MultiArray& cmd_msg)
 void steerCommand_cb( const std_msgs::Float32& steer_cmd_msg)
   {
-  setServo(steer_cmd_msg.data);
-//    setServo(cmd_msg.data[1]);
+  setSteerAngle(steer_cmd_msg.data);
+//    setSteerAngle(cmd_msg.data[1]);
 
   }
   
   void speedCommand_cb( const std_msgs::Float32& speed_cmd_msg)
   {
-  //setServo(cmd_msg.data);
-//    setServo(cmd_msg.data[1]);
+  //setSteerAngle(cmd_msg.data);
+    setSpeed(speed_cmd_msg.data]);
 
   }
 
 
 //ros::Subscriber<std_msgs::Float32MultiArray> sub("carCommand", carCommand_cb);
 ros::Subscriber<std_msgs::Float32> sub("steerCommand", steerCommand_cb);
-//ros::Subscriber<std_msgs::Float32> sub("speedCommand", carCommand_cb);
+ros::Subscriber<std_msgs::Float32> sub("speedCommand", carCommand_cb);
 
 
 
@@ -138,7 +139,7 @@ void setup()
   speedDemand = 0;
   
   
-  setServo(-15);
+  setSteerAngle(-15);
   
   
   delay(3000);
@@ -176,13 +177,13 @@ void setup()
   
   delay(500);
   //Steering test and reset
-  setServo(-15);
+  setSteerAngle(-15);
   //Serial.print("Servo-15");
   delay(250);
-  setServo(15);
+  setSteerAngle(15);
   //Serial.print("Servo 15");
   delay(250);
-  setServo(0); 
+  setSteerAngle(0); 
   //Serial.print("Servo 0");
  }
 
@@ -300,7 +301,7 @@ void TachRead ()
       dist--;
 }
 
-void setServo(float _angleIn)
+void setSteerAngle(float _angleIn)
 {
   _angleIn = -1*constrain(_angleIn, -1*maxSteerAngle, maxSteerAngle) + servoTrim + 90;
   steeringServo.write(_angleIn);

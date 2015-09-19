@@ -23,12 +23,15 @@ goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_in
   global_path_publisher_ = nh_.advertise<nav_msgs::Path>("/global_path", 10);
   goal_publisher_  = nh_.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal2", 10);
   steer_command_publisher_ = nh_.advertise<std_msgs::Float32>("/steerCommand", 1000);
-  speed_command_publisher_ = nh_.advertise<std_msgs::Float32>("/steerCommand", 1000);
+  speed_command_publisher_ = nh_.advertise<std_msgs::Float32>("/speedCommand", 1000);
   goal_subscriber_ = nh_.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 10, &GoalPositionUpdater::goal_callback, this);
   timer_ = nh_.createTimer(ros::Duration(0.1), &GoalPositionUpdater::timer_callback, this);
   distance_threshold_ = 1.0;
 
-  std::ifstream waypointFile ("/tmp/waypoints.txt");
+  //std::ifstream waypointFile ("/tmp/waypoints.txt");
+  std::ifstream waypointFile ("/home/jamie/APPPRS/workspace/maps/waypoints.txt");
+
+
   std::string line;
   if (waypointFile.is_open()) {
     while ( std::getline (waypointFile, line) ) {
@@ -154,43 +157,23 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
 
 int GoalPositionUpdater::checkPosition(float xc_w, float yc_w, float Xway_w, float Yway_w, float Thway_w) {
 
+  tf::StampedTransform transform_r_base;
+  try{
+    tf_listener_.lookupTransform("/waypoint","/base_link", ros::Time(0), transform_r_base);
+  }
+  catch (tf::TransformException& ex){
+    return 0;
+  }
+  Eigen::Vector3d base_pose = Eigen::Vector3d (transform_r_base.getOrigin().x(),transform_r_base.getOrigin().y(),transform_r_base.getOrigin().z());
+
+
   float distance = sqrt(pow(xc_w-Xway_w, 2)+pow(yc_w-Yway_w,2));
-  std::cout << "distance: " << sqrt(pow(xc_w-Xway_w, 2)+pow(yc_w-Yway_w,2)) << std::endl;
-  if (distance < 0.5)
+
+  if (base_pose[0] > 0)
     return 1;
   return 0;
 
-
-
-  float a=cos(Thway_w*M_PI/180);
-  float b=-sin(Thway_w*M_PI/180);
-  float c=Xway_w;
-  float d=sin(Thway_w*M_PI/180);
-  float e=cos(Thway_w*M_PI/180);
-  float f=Yway_w;
-
-  float xnew=a*xc_w+b*yc_w+(-a*c-d*f)*1;
-  float ynew=b*xc_w+e*yc_w+(-b*e-c*f)*1;
-
-  int status;
-
-  if (ynew > 0)
-    status = 1; //load the next waypoint
-  else status = 0;
-
-/*
-  float threshold_min = 0.04;
-  float threshold_max = 0.25; //if out of this limit
-  float diffx = xc - xg;
-  float diffy = yc - yg;
-  dist = sqrt(pow(diffx,2) + pow(diffy,2));
-  if ((dist>threshold_min) && (dist<threshold_max))
-    status = 0;
-  else if (dist > threshold_max)
-        status = 2;
-  else status = 1;
-*/
-  return status;
+  //return status;
 }
 
 void GoalPositionUpdater::computeAndPublishNextCommand() {
@@ -209,7 +192,18 @@ void GoalPositionUpdater::computeAndPublishNextCommand() {
   std_msgs::Float32 steer_cmd_msg;
   steer_cmd_msg.data=std::min(std::max(-theta*180/M_PI, -35.0), 35.0);
 
-  std::cout << "Send angle: " << steer_cmd_msg.data << std::endl;
+
+
+
+  //std::cout << "Send angle: " << steer_cmd_msg.data << std::endl;
   steer_command_publisher_.publish(steer_cmd_msg); //publish message
+
+  std_msgs::Float32 speed_cmd_msg;
+  speed_cmd_msg.data=5;
+
+  //std::cout << "Send speed: " << speed_cmd_msg.data << std::endl;
+  speed_command_publisher_.publish(speed_cmd_msg); //publish message
+
+ 
 
 }
