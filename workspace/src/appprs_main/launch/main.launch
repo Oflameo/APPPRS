@@ -1,0 +1,22 @@
+<launch>
+
+  <arg name="map_folder" default="$(find appprs_main)/maps/cmu_level1"/>
+  <arg name="map_name" default="map.yaml"/>
+  <arg name="waypoint_file_name" default="waypoints.txt"/>
+  
+  <param name="use_sim_time" value="false" />
+  
+  <include file="$(find appprs_main)/launch/amcl_live.launch"/>
+ 
+  <node name="waypoint_manager" pkg="appprs_main" type="goal_updater_node" respawn="false" output="screen">
+    <param name="waypoint_file" value="$(arg map_folder)/$(arg waypoint_file_name)"/>
+  </node>
+
+  <!-- add map loader -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_folder)/$(arg map_name)" respawn="false" output="screen" />
+
+  <!-- run rviz -->
+  <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(find appprs_main)/config/amcl.rviz" />
+  
+  
+</launch>

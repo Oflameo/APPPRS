@@ -39,7 +39,7 @@ private:
   std::vector<geometry_msgs::PoseStamped> global_waypoint_list_, local_waypoint_list_;
   size_t current_global_waypoint_index_, current_local_waypoint_index_;
 
-  int checkPosition(float xc, float yc, float Xway, float Yway, float Thway);
+  int checkPosition();
   void computeAndPublishNextCommand();
 
 };
