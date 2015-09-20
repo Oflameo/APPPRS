@@ -2,6 +2,8 @@
 
   <param name="use_sim_time" value="false" />
 
+  <include file="$(find appprs_main)/launch/dead_reckoning.launch"/>
+
 
   <node name="hokuyo" pkg="hokuyo_node" type="hokuyo_node" respawn="false" output="screen">
     <!-- false: Starts up faster, but timestamps will be inaccurate. --> 
