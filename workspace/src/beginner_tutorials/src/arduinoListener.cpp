@@ -9,7 +9,7 @@
 #include <tf/transform_broadcaster.h>
 //#include "cmath.h"
 
-const float dist_per_tick = 1.0638*0.5*0.001;//units are meters
+const float dist_per_tick = 1.3522*0.5*0.001;//units are meters
 
 //Instantiate  global variables
 double g_x=0, g_y=0;
