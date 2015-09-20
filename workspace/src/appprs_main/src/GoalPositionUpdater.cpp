@@ -22,13 +22,17 @@ goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_in
   local_path_publisher_  = nh_.advertise<nav_msgs::Path>("/local_path", 10);
   global_path_publisher_ = nh_.advertise<nav_msgs::Path>("/global_path", 10);
   goal_publisher_  = nh_.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal2", 10);
-  steer_command_publisher_ = nh_.advertise<std_msgs::Float32>("/steerCommand", 1000);
-  speed_command_publisher_ = nh_.advertise<std_msgs::Float32>("/steerCommand", 1000);
+  steer_command_publisher_ = nh_.advertise<std_msgs::Float32>("/steerCommand", 1);
+  speed_command_publisher_ = nh_.advertise<std_msgs::Float32>("/speedCommand", 1);
   goal_subscriber_ = nh_.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 10, &GoalPositionUpdater::goal_callback, this);
   timer_ = nh_.createTimer(ros::Duration(0.1), &GoalPositionUpdater::timer_callback, this);
+  ros::NodeHandle pnh("~");
+  std::string waypoint_file_name;
+  pnh.param("waypoint_file", waypoint_file_name, std::string("/tmp/waypoints.txt"));
   distance_threshold_ = 1.0;
 
-  std::ifstream waypointFile ("/tmp/waypoints.txt");
+  ROS_INFO_STREAM("Attempting to open waypoint file " << waypoint_file_name << ".");
+  std::ifstream waypointFile (waypoint_file_name);
   std::string line;
   if (waypointFile.is_open()) {
     while ( std::getline (waypointFile, line) ) {
@@ -40,7 +44,7 @@ goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_in
       }
       //create final datastructure
       if (number_list.size()<7) {
-        std::cout << "Unable to parse way point list!" << std::endl;
+        ROS_FATAL_STREAM("Unable to parse way point list, less than 7 tokens in line "<< line << "!");
         continue;
       }
       geometry_msgs::PoseStamped new_pose;
@@ -54,11 +58,9 @@ goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_in
       global_waypoint_list_.push_back(new_pose);
 //      Eigen::Vector3f pt = Eigen::Vector3f(number_list[0], number_list[1], number_list[2]);
 //      Eigen::Quaternionf quat = Eigen::Quaternionf(number_list[6], number_list[3], number_list[4], number_list[5]);
-      float angle = acos(number_list[6])*2.0;
-      //std::cout << angle*360/M_PI << std::endl;
     }
     waypointFile.close();
-    std::cout << "Way point file with " << global_waypoint_list_.size() << " way points has been successfully parsed." << std::endl;
+    ROS_INFO_STREAM("Way point file with " << global_waypoint_list_.size() << " way points has been successfully parsed.");
 
     local_waypoint_list_ = getPath(0.0,
                                    0.0,
@@ -68,7 +70,7 @@ goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_in
                                    acos(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w)*2.0);
 
   } else {
-    std::cout << "Failed to parse way point file" << std::endl;
+    ROS_FATAL_STREAM("Failed to parse way point file");
   }
 
 }
@@ -206,10 +208,12 @@ void GoalPositionUpdater::computeAndPublishNextCommand() {
   //std::cout << waypoint_pose << std::endl;
   float theta = atan2(waypoint_pose[1], waypoint_pose[0]);
 
-  std_msgs::Float32 steer_cmd_msg;
+  std_msgs::Float32 steer_cmd_msg, speed_cmd_msg;
   steer_cmd_msg.data=std::min(std::max(-theta*180/M_PI, -35.0), 35.0);
+  speed_cmd_msg.data=(40.0-fabs(steer_cmd_msg.data))*0.025; //between 0.125 at 35deg and 1 at 0 deg
 
-  std::cout << "Send angle: " << steer_cmd_msg.data << std::endl;
+  std::cout << "Send angle: " << steer_cmd_msg.data << ", velocity: " << speed_cmd_msg.data << std::endl;
   steer_command_publisher_.publish(steer_cmd_msg); //publish message
+  speed_command_publisher_.publish(speed_cmd_msg); //publish message
 
 }
