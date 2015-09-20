@@ -124,26 +124,29 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
   Eigen::Vector3d robot_pose = Eigen::Vector3d (transform_w_b.getOrigin().x(),transform_w_b.getOrigin().y(),transform_w_b.getOrigin().z());
   Eigen::Quaterniond robot_quat = Eigen::Quaterniond (transform_w_b.getRotation().getW(), transform_w_b.getRotation().getX(), transform_w_b.getRotation().getY(), transform_w_b.getRotation().getZ());
 
-  int result = checkPosition(robot_pose(0),
-                             robot_pose(1),
-                             local_waypoint_list_[current_local_waypoint_index_].pose.position.x,
-                             local_waypoint_list_[current_local_waypoint_index_].pose.position.y,
-                             acos(local_waypoint_list_[current_local_waypoint_index_].pose.orientation.w)*2.0);
+  int result = checkPosition();
 
   if (result >= 1) { //advance to next local  waypoint
     ++current_local_waypoint_index_;
-    if (current_local_waypoint_index_>=local_waypoint_list_.size()-1) { //advance to next global waypoint
+    if (current_local_waypoint_index_>=local_waypoint_list_.size()-2) { //advance to next global waypoint
       ++current_global_waypoint_index_;
       if(current_global_waypoint_index_>=global_waypoint_list_.size()){
         current_global_waypoint_index_ = 0;
       }
 
+      //std::cout << "robot: " << robot_quat.toRotationMatrix().eulerAngles(0, 1, 2)*180/M_PI << ", " << acos(robot_quat.w())*2.0*180/M_PI << std::endl;
+      Eigen::Quaterniond waypoint_quat(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w,
+                                       global_waypoint_list_[current_global_waypoint_index_].pose.orientation.x,
+                                       global_waypoint_list_[current_global_waypoint_index_].pose.orientation.y,
+                                       global_waypoint_list_[current_global_waypoint_index_].pose.orientation.z);
+      //std::cout << "map: " << waypoint_quat.toRotationMatrix().eulerAngles(0, 1, 2)*180/M_PI << ", " << acos(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w)*2.0*180/M_PI << std::endl;
+
       local_waypoint_list_ = getPath(robot_pose(0),
                                      robot_pose(1),
-                                     acos(robot_quat.w())*2.0,
+                                     robot_quat.toRotationMatrix().eulerAngles(0, 1, 2)(2),
                                      global_waypoint_list_[current_global_waypoint_index_].pose.position.x,
                                      global_waypoint_list_[current_global_waypoint_index_].pose.position.y,
-                                     acos(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w)*2.0);
+                                     waypoint_quat.toRotationMatrix().eulerAngles(0, 1, 2)(2));
       current_local_waypoint_index_ = 1;
     }
   }
@@ -154,45 +157,21 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
   //std::cout << "quat w comp " << robot_quat.w() << std::endl;
 }
 
-int GoalPositionUpdater::checkPosition(float xc_w, float yc_w, float Xway_w, float Yway_w, float Thway_w) {
+int GoalPositionUpdater::checkPosition() {
 
-  float distance = sqrt(pow(xc_w-Xway_w, 2)+pow(yc_w-Yway_w,2));
-  std::cout << "distance: " << sqrt(pow(xc_w-Xway_w, 2)+pow(yc_w-Yway_w,2)) << std::endl;
-  if (distance < 0.5)
+  tf::StampedTransform transform_r_base;
+  try{
+    tf_listener_.lookupTransform("/waypoint","/base_link", ros::Time(0), transform_r_base);
+  }
+  catch (tf::TransformException& ex){
+    return 0;
+  }
+  Eigen::Vector3d base_pose = Eigen::Vector3d (transform_r_base.getOrigin().x(),transform_r_base.getOrigin().y(),transform_r_base.getOrigin().z());
+
+  if (base_pose[0] > -0.5)
     return 1;
   return 0;
 
-
-
-  float a=cos(Thway_w*M_PI/180);
-  float b=-sin(Thway_w*M_PI/180);
-  float c=Xway_w;
-  float d=sin(Thway_w*M_PI/180);
-  float e=cos(Thway_w*M_PI/180);
-  float f=Yway_w;
-
-  float xnew=a*xc_w+b*yc_w+(-a*c-d*f)*1;
-  float ynew=b*xc_w+e*yc_w+(-b*e-c*f)*1;
-
-  int status;
-
-  if (ynew > 0)
-    status = 1; //load the next waypoint
-  else status = 0;
-
-/*
-  float threshold_min = 0.04;
-  float threshold_max = 0.25; //if out of this limit
-  float diffx = xc - xg;
-  float diffy = yc - yg;
-  dist = sqrt(pow(diffx,2) + pow(diffy,2));
-  if ((dist>threshold_min) && (dist<threshold_max))
-    status = 0;
-  else if (dist > threshold_max)
-        status = 2;
-  else status = 1;
-*/
-  return status;
 }
 
 void GoalPositionUpdater::computeAndPublishNextCommand() {
@@ -210,10 +189,15 @@ void GoalPositionUpdater::computeAndPublishNextCommand() {
 
   std_msgs::Float32 steer_cmd_msg, speed_cmd_msg;
   steer_cmd_msg.data=std::min(std::max(-theta*180/M_PI, -35.0), 35.0);
-  speed_cmd_msg.data=(40.0-fabs(steer_cmd_msg.data))*0.025; //between 0.125 at 35deg and 1 at 0 deg
+  speed_cmd_msg.data=(40.0-fabs(steer_cmd_msg.data))*(1/40.0); //between 0.125 at 35deg and 1 at 0 deg
 
-  std::cout << "Send angle: " << steer_cmd_msg.data << ", velocity: " << speed_cmd_msg.data << std::endl;
+  ROS_DEBUG_STREAM("Send angle: " << steer_cmd_msg.data << ", velocity: " << speed_cmd_msg.data);
   steer_command_publisher_.publish(steer_cmd_msg); //publish message
   speed_command_publisher_.publish(speed_cmd_msg); //publish message
+
+  //std::cout << "Send speed: " << speed_cmd_msg.data << std::endl;
+  speed_command_publisher_.publish(speed_cmd_msg); //publish message
+
+ 
 
 }

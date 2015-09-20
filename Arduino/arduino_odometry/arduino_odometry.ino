@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include <ros.h>
 #include <stdint.h>
-//#include <ros/time.
+//#include <ros/time.h>
 //#include <std_msgs/MultiArrayLayout.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/Int16MultiArray.h>
@@ -28,6 +28,9 @@ const int tachPinA = 2;
 const int tachPinB = 3;
 
 int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ,dist,tacState, totalDist = 0;
+unsigned long oldTime;
+float Speed=0;
+float TicCoef=1.1; // mm/tic
 
 ros::NodeHandle  nh;
 
@@ -79,25 +82,25 @@ int32_t AcXAccm, AcYAccm, AcZAccm, GyXAccm, GyYAccm, GyZAccm;
 
 
 
-//void carCommand_cb( const std_msgs::Float32MultiArray& cmd_msg)
-void steerCommand_cb( const std_msgs::Float32& steer_cmd_msg)
+  void steerCommand_cb( const std_msgs::Float32& steer_cmd_msg)
   {
-  setServo(steer_cmd_msg.data);
-//    setServo(cmd_msg.data[1]);
+  setSteerAngle(steer_cmd_msg.data);
+//    setSteerAngle(cmd_msg.data[1]);
 
   }
   
   void speedCommand_cb( const std_msgs::Float32& speed_cmd_msg)
   {
-  //setServo(cmd_msg.data);
-//    setServo(cmd_msg.data[1]);
+  //setSteerAngle(cmd_msg.data);
+    setSpeed(speed_cmd_msg.data);
 
   }
 
 
 //ros::Subscriber<std_msgs::Float32MultiArray> sub("carCommand", carCommand_cb);
-ros::Subscriber<std_msgs::Float32> sub("steerCommand", steerCommand_cb);
-//ros::Subscriber<std_msgs::Float32> sub("speedCommand", carCommand_cb);
+ros::Subscriber<std_msgs::Float32> steerSub("steerCommand", steerCommand_cb);
+
+ros::Subscriber<std_msgs::Float32> speedSub("speedCommand", speedCommand_cb);
 
 
 
@@ -121,7 +124,8 @@ void setup()
   //test.layout.dim[0].size = 8;
   //test.layout.dim[0].stride = 1*8;
   test.layout.data_offset = 0;
-  nh.subscribe(sub);
+  nh.subscribe(steerSub);
+  nh.subscribe(speedSub);
   
   nh.advertise(p);
   totalDist=0;
@@ -138,7 +142,7 @@ void setup()
   speedDemand = 0;
   
   
-  setServo(-15);
+  setSteerAngle(-15);
   
   
   delay(3000);
@@ -176,14 +180,15 @@ void setup()
   
   delay(500);
   //Steering test and reset
-  setServo(-15);
+  setSteerAngle(-15);
   //Serial.print("Servo-15");
   delay(250);
-  setServo(15);
+  setSteerAngle(15);
   //Serial.print("Servo 15");
   delay(250);
-  setServo(0); 
+  setSteerAngle(0); 
   //Serial.print("Servo 0");
+  oldTime=millis();
  }
 
 
@@ -277,16 +282,18 @@ void loop()
   test.data[3]=GyZ;
   
   test.data[4]=dist;
+  Speed=(dist*TicCoef/1000)/((millis()-oldTime)/1000);
+  oldTime=millis();
   totalDist=totalDist+dist;
   dist=0;  
   
  // Serial.println(millis());
 
   //Serial.print("GX: "); Serial.print(GyX);
-  //Serial.print("\tGY: "); Serial.print(GyY);
+  Serial.print("\tdist: "); Serial.print(totalDist);
   //Serial.print("\tGZ: "); Serial.println(GyZ);
 
-  p.publish( &test );
+ // p.publish( &test );
   nh.spinOnce();
   delay(100);
 }
@@ -300,7 +307,7 @@ void TachRead ()
       dist--;
 }
 
-void setServo(float _angleIn)
+void setSteerAngle(float _angleIn)
 {
   _angleIn = -1*constrain(_angleIn, -1*maxSteerAngle, maxSteerAngle) + servoTrim + 90;
   steeringServo.write(_angleIn);
@@ -308,6 +315,11 @@ void setServo(float _angleIn)
 
 void setSpeed(float _speedIn)
 {
-  _speedIn = -1*constrain(_speedIn, -1*maxSpeed, maxSpeed) + speedTrim + 90;
-  speedServo.write(_speedIn);
+  _speedIn = constrain(_speedIn, -1*maxSpeed, maxSpeed) + speedTrim + 90;
+
+  float P=1.0;
+  float FF=.5*_speedIn;  
+  
+  float errorSpeed=(_speedIn-Speed)*P;
+  speedServo.write(errorSpeed+FF);
 }
