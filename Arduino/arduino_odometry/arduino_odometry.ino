@@ -44,15 +44,22 @@ const int speedServoPin = 12;
 
 //**Steering Servo setup***********
 Servo steeringServo;
-int maxSteerAngle = 22;
+int maxSteerAngle = 23;
 int servoTrim = -5;  //positive trim goes left
 int servoRange = 90;  //rotational range of servo, from full CW to full CCW
 int steeringDemand;
 //************************
 
+
+
+
+//***************
+// **NOTE: need to fix limits here!!!*****
+//***************
+
 //**Velocity Servo setup***********
 Servo speedServo;
-int maxSpeed = 35;
+float maxSpeed = 4;  // m/s
 int speedTrim = 5;  //positive trim goes left
 int speedRange = 90;  //rotational range of servo, from full CW to full CCW
 int speedDemand;
@@ -92,7 +99,7 @@ int32_t AcXAccm, AcYAccm, AcZAccm, GyXAccm, GyYAccm, GyZAccm;
   void speedCommand_cb( const std_msgs::Float32& speed_cmd_msg)
   {
   //setSteerAngle(cmd_msg.data);
-    setSpeed(speed_cmd_msg.data);
+    setPower(speed_cmd_msg.data);
 
   }
 
@@ -142,10 +149,10 @@ void setup()
   speedDemand = 0;
   
   
-  setSteerAngle(-15);
   
-  delay(250);
-  setSteerAngle(0); 
+  setSteerAngle(0);
+  
+  
   delay(3000);
   
   // ** Sample gyro for set number of cycles **
@@ -178,17 +185,15 @@ void setup()
   GyXcal /= calCycles;
   GyYcal /= calCycles;
   GyZcal /= calCycles;
-
- 
   
   delay(500);
   //Steering test and reset
-  setSteerAngle(22);
-  //Serial.print("Servo-15");u
-  delay(1000);
-  setSteerAngle(-22);
+  setSteerAngle(-5);
+  //Serial.print("Servo-15");
+  delay(500);
+  setSteerAngle(5);
   //Serial.print("Servo 15");
-  delay(1000);
+  delay(500);
   setSteerAngle(0); 
   //Serial.print("Servo 0");
   oldTime=millis();
@@ -259,12 +264,13 @@ void loop()
   GyZ = GyZAccm / numSamples;
   */
   
+  // **** Read IMU ****
     Wire.beginTransmission(MPU);
     Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
     Wire.endTransmission(false);
     Wire.requestFrom(MPU,14,true);  // request a total of 14 registers
   
-   AcX=Wire.read()<<8|Wire.read();  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)     
+    AcX=Wire.read()<<8|Wire.read();  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)     
     AcY=Wire.read()<<8|Wire.read();  // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
     AcZ=Wire.read()<<8|Wire.read();  // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
     Tmp=Wire.read()<<8|Wire.read();  // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
@@ -316,7 +322,7 @@ void setSteerAngle(float _angleIn)
   steeringServo.write(_angleIn);
 }
 
-void setSpeed(float _speedIn)
+void setPower(float _speedIn)
 {
   _speedIn = constrain(_speedIn, -1*maxSpeed, maxSpeed) + speedTrim + 90;
 
