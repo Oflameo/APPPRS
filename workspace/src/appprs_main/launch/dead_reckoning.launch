@@ -1,6 +1,6 @@
 <launch>
  
-  <node pkg="rosserial_python" type="serial_node.py" name="serial_driver" args="/dev/serial/by-id/usb-Arduino__www.arduino.cc__Arduino_Mega_2560_6493832333135111B211-if00" />
+  <node pkg="rosserial_python" type="serial_node.py" name="serial_driver" args="/dev/serial/by-id/usb-Arduino__www.arduino.cc__0042_7523230323535181A1C2-if00" />
   <node pkg="appprs_main" type="arduinoListener" name="serial_to_tf" />
 
 </launch>

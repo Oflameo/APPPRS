@@ -299,10 +299,10 @@ void loop()
  // Serial.println(millis());
 
   //Serial.print("GX: "); Serial.print(GyX);
-  Serial.print("\tdist: "); Serial.print(totalDist);
+  //Serial.print("\tdist: "); Serial.print(totalDist);
   //Serial.print("\tGZ: "); Serial.println(GyZ);
 
- // p.publish( &test );
+  p.publish( &test );
   nh.spinOnce();
   delay(100);
 }
