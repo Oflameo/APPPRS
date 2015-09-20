@@ -44,8 +44,8 @@ const int speedServoPin = 12;
 
 //**Steering Servo setup***********
 Servo steeringServo;
-int maxSteerAngle = 35;
-int servoTrim = 5;  //positive trim goes left
+int maxSteerAngle = 22;
+int servoTrim = -5;  //positive trim goes left
 int servoRange = 90;  //rotational range of servo, from full CW to full CCW
 int steeringDemand;
 //************************
@@ -144,7 +144,8 @@ void setup()
   
   setSteerAngle(-15);
   
-  
+  delay(250);
+  setSteerAngle(0); 
   delay(3000);
   
   // ** Sample gyro for set number of cycles **
@@ -177,15 +178,17 @@ void setup()
   GyXcal /= calCycles;
   GyYcal /= calCycles;
   GyZcal /= calCycles;
+
+ 
   
   delay(500);
   //Steering test and reset
-  setSteerAngle(-15);
-  //Serial.print("Servo-15");
-  delay(250);
-  setSteerAngle(15);
+  setSteerAngle(22);
+  //Serial.print("Servo-15");u
+  delay(1000);
+  setSteerAngle(-22);
   //Serial.print("Servo 15");
-  delay(250);
+  delay(1000);
   setSteerAngle(0); 
   //Serial.print("Servo 0");
   oldTime=millis();
