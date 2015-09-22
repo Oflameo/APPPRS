@@ -17,12 +17,12 @@
 
   <node name="gmapping_node" pkg="gmapping" type="slam_gmapping" respawn="false" output="screen">
     <param name="scan" value="scan"/>         <!-- name of the laser topic -->
-    <param name="xmin" value="-50.0"/>        <!-- dimensions of the octomap -->
-    <param name="xmax" value="50.0"/>
-    <param name="ymin" value="-50.0"/>
-    <param name="ymax" value="50.0"/>
+    <param name="xmin" value="-100.0"/>        <!-- dimensions of the octomap -->
+    <param name="xmax" value="100.0"/>
+    <param name="ymin" value="-100.0"/>
+    <param name="ymax" value="100.0"/>
     <param name="delta" value="0.02"/>        <!-- resolution of the octomap -->
-    <param name="maxUrange" value="5.0"/>     <!-- usable range of the laser scanner -->
+    <param name="maxUrange" value="15.0"/>     <!-- usable range of the laser scanner -->
     <param name="linearUpdate" value="1"/>
     <param name="angularUpdate" value="0.5"/>
     <param name="srr" value="0.01"/>
@@ -41,5 +41,8 @@
   <!-- 
   <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(find appprs_main)/config/rviz.rviz"/>
   -->
-  
+
+   <!-- run rviz -->
+  <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(find appprs_main)/config/rviz.rviz" />
+ 
 </launch>

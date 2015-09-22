@@ -1,6 +1,6 @@
 <launch>
   
-  <arg name="map_folder" default="$(find appprs_main)/maps/cmu_level1"/>
+  <arg name="map_folder" default="$(find appprs_main)/maps/cmu_baker"/>
   <arg name="map_name" default="map.yaml"/>
   <arg name="waypoint_file_name" default="waypoints.txt"/>
 
