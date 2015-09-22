@@ -24,9 +24,14 @@
     <param name="initial_pose_x" value="0"/>         <!-- y value of the intial pose -->
     <param name="initial_pose_a" value="0.0"/>       <!-- yaw value of the intial pose in radians -->
     <param name="use_map_topic" value="true"/>       <!-- subscribes to map topic rather than making  -->
+    <param name="update_min_d" value="0.1"/>
+    <param name="update_min_a" value="0.4"/>
+    <param name="odom_model_type" value="omni"/>
+    <param name="odom_alpha1" value="0.4"/>
+    <param name="odom_alpha2" value="0.1"/>
     <param name="ymax" value="50.0"/>
     <param name="delta" value="0.02"/>        <!-- resolution of the octomap -->
-    <param name="maxUrange" value="5.0"/>     <!-- usable range of the laser scanner -->
+    <param name="maxUrange" value="15.0"/>     <!-- usable range of the laser scanner -->
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="baselink_laser_broadcaster" args="0 0 0 0 0 0 1 base_link laser 100" />
