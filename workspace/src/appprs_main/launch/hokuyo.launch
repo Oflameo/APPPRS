@@ -1,0 +1,18 @@
+<launch>
+
+  <node name="hokuyo" pkg="hokuyo_node" type="hokuyo_node" respawn="false" output="screen">
+    <!-- false: Starts up faster, but timestamps will be inaccurate. --> 
+    <param name="calibrate_time" type="bool" value="true"/> 
+    <!-- Set the port to connect to here -->
+    <param name="port" type="string" value="/dev/serial/by-id/usb-Hokuyo_Data_Flex_for_USB_URG-Series_USB_Driver-if00"/> 
+    <param name="intensity" type="bool" value="false"/>
+    <param name="cluster" value="1"/>
+    <param name="skip" value="1"/>
+    <!--param name="allow_unsafe_settings" type="bool" value="true"/-->
+    
+    <param name="max_ang" value="2.352"/>
+    <param name="min_ang" value="-2.348"/>
+  
+  </node>
+
+</launch>
