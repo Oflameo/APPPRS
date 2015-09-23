@@ -196,7 +196,7 @@ void GoalPositionUpdater::computeAndPublishNextCommand() {
   speed_command_publisher_.publish(speed_cmd_msg); //publish message
 
   //std::cout << "Send speed: " << speed_cmd_msg.data << std::endl;
-  speed_command_publisher_.publish(speed_cmd_msg); //publish message
+  //speed_command_publisher_.publish(speed_cmd_msg); //publish message
 
  
 
