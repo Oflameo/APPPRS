@@ -25,6 +25,7 @@ public:
   void timer_callback(const ros::TimerEvent& e);
   inline Eigen::Vector3d getLastGoal() {return last_goal_;}
   inline Eigen::Vector3d getCurrentGoal() {return current_goal_;}
+  int recomputeLocalPath();
 private:
   ros::NodeHandle nh_;
   tf::TransformListener tf_listener_;

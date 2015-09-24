@@ -12,7 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   std_msgs
   nav_msgs
-
+  sensor_msgs
+  joy
   genmsg
 )
 

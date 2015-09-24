@@ -19,7 +19,12 @@
 #include "appprs_main/p_control_path_planner.h"
 
 GoalPositionUpdater::GoalPositionUpdater():
-goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_index_(1){
+goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_index_(1), last_joy_msg_(sensor_msgs::Joy()){
+  last_joy_msg_.axes = std::vector<float>();
+  last_joy_msg_.axes.resize(8, 0);
+  last_joy_msg_.buttons = std::vector<int>();
+  last_joy_msg_.buttons.resize(10, 0);
+
   local_path_publisher_  = nh_.advertise<nav_msgs::Path>("/local_path", 10);
   global_path_publisher_ = nh_.advertise<nav_msgs::Path>("/global_path", 10);
   goal_publisher_  = nh_.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal2", 10);
@@ -64,12 +69,12 @@ goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_in
     waypointFile.close();
     ROS_INFO_STREAM("Way point file with " << global_waypoint_list_.size() << " way points has been successfully parsed.");
 
-    local_waypoint_list_ = getPath(0.0,
-                                   0.0,
-                                   0.0,
-                                   global_waypoint_list_[current_global_waypoint_index_].pose.position.x,
-                                   global_waypoint_list_[current_global_waypoint_index_].pose.position.y,
-                                   acos(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w)*2.0);
+//    local_waypoint_list_ = getPath(0.0,
+//                                   0.0,
+//                                   0.0,
+//                                   global_waypoint_list_[current_global_waypoint_index_].pose.position.x,
+//                                   global_waypoint_list_[current_global_waypoint_index_].pose.position.y,
+//                                   acos(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w)*2.0);
 
   } else {
     ROS_FATAL_STREAM("Failed to parse way point file");
@@ -90,6 +95,11 @@ void GoalPositionUpdater::goal_callback(const geometry_msgs::PoseStamped::ConstP
 
 void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
 
+  if (local_waypoint_list_.empty()) {
+    recomputeLocalPath();
+    return;
+  }
+
   geometry_msgs::PoseStamped pose_msg = local_waypoint_list_[current_local_waypoint_index_];
   tf::Transform transform_auxiliar;
   transform_auxiliar.setOrigin(tf::Vector3(pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z));
@@ -105,29 +115,9 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
   global_path.poses = global_waypoint_list_;
   global_path_publisher_.publish(global_path);
   geometry_msgs::PoseStamped next_waypoint;
-  next_waypoint.pose = local_waypoint_list_[current_local_waypoint_index_].pose;
-  next_waypoint.header.frame_id = "/map";
-  next_waypoint.header.stamp = ros::Time::now();
-  goal_publisher_.publish(next_waypoint);
 
-//  if (goals_received_ < 1) return;
-
-  //obtain current location
-  tf::StampedTransform transform_w_b;
-  try{
-    tf_listener_.lookupTransform("/map", "/base_link", ros::Time(0), transform_w_b);
-  }
-  catch (tf::TransformException& ex){
-    //std::cout << "pose not received" << std::endl;
-    return;
-    //ROS_ERROR("%s",ex.what());
-    //ros::Duration(1.0).sleep();
-  }
-  Eigen::Vector3d robot_pose = Eigen::Vector3d (transform_w_b.getOrigin().x(),transform_w_b.getOrigin().y(),transform_w_b.getOrigin().z());
-  Eigen::Quaterniond robot_quat = Eigen::Quaterniond (transform_w_b.getRotation().getW(), transform_w_b.getRotation().getX(), transform_w_b.getRotation().getY(), transform_w_b.getRotation().getZ());
-
+  //check if local waypoint has been reached
   int result = checkPosition();
-
   if (result >= 1) { //advance to next local  waypoint
     ++current_local_waypoint_index_;
     if (current_local_waypoint_index_>=local_waypoint_list_.size()-2) { //advance to next global waypoint
@@ -135,28 +125,51 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
       if(current_global_waypoint_index_>=global_waypoint_list_.size()){
         current_global_waypoint_index_ = 0;
       }
-
-      //std::cout << "robot: " << robot_quat.toRotationMatrix().eulerAngles(0, 1, 2)*180/M_PI << ", " << acos(robot_quat.w())*2.0*180/M_PI << std::endl;
-      Eigen::Quaterniond waypoint_quat(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w,
-                                       global_waypoint_list_[current_global_waypoint_index_].pose.orientation.x,
-                                       global_waypoint_list_[current_global_waypoint_index_].pose.orientation.y,
-                                       global_waypoint_list_[current_global_waypoint_index_].pose.orientation.z);
-      //std::cout << "map: " << waypoint_quat.toRotationMatrix().eulerAngles(0, 1, 2)*180/M_PI << ", " << acos(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w)*2.0*180/M_PI << std::endl;
-
-      local_waypoint_list_ = getPath(robot_pose(0),
-                                     robot_pose(1),
-                                     robot_quat.toRotationMatrix().eulerAngles(0, 1, 2)(2),
-                                     global_waypoint_list_[current_global_waypoint_index_].pose.position.x,
-                                     global_waypoint_list_[current_global_waypoint_index_].pose.position.y,
-                                     waypoint_quat.toRotationMatrix().eulerAngles(0, 1, 2)(2));
-      current_local_waypoint_index_ = 1;
+      recomputeLocalPath();
     }
   }
+
+  next_waypoint.pose = local_waypoint_list_[current_local_waypoint_index_].pose;
+  next_waypoint.header.frame_id = "/map";
+  next_waypoint.header.stamp = ros::Time::now();
+  goal_publisher_.publish(next_waypoint);
 
   //compute new angle/vel
   computeAndPublishNextCommand();
   //std::cout << "quat z comp " << robot_quat.z() << std::endl;
   //std::cout << "quat w comp " << robot_quat.w() << std::endl;
+}
+
+int GoalPositionUpdater::recomputeLocalPath(){
+  //obtain current location
+  tf::StampedTransform transform_w_b;
+  try{
+    tf_listener_.lookupTransform("/map", "/base_link", ros::Time(0), transform_w_b);
+  }
+  catch (tf::TransformException& ex){
+    //std::cout << "pose not received" << std::endl;
+    return 0;
+    //ROS_ERROR("%s",ex.what());
+    //ros::Duration(1.0).sleep();
+  }
+  Eigen::Vector3d robot_pose = Eigen::Vector3d (transform_w_b.getOrigin().x(),transform_w_b.getOrigin().y(),transform_w_b.getOrigin().z());
+  Eigen::Quaterniond robot_quat = Eigen::Quaterniond (transform_w_b.getRotation().getW(), transform_w_b.getRotation().getX(), transform_w_b.getRotation().getY(), transform_w_b.getRotation().getZ());
+
+  //std::cout << "robot: " << robot_quat.toRotationMatrix().eulerAngles(0, 1, 2)*180/M_PI << ", " << acos(robot_quat.w())*2.0*180/M_PI << std::endl;
+  Eigen::Quaterniond waypoint_quat(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w,
+                                   global_waypoint_list_[current_global_waypoint_index_].pose.orientation.x,
+                                   global_waypoint_list_[current_global_waypoint_index_].pose.orientation.y,
+                                   global_waypoint_list_[current_global_waypoint_index_].pose.orientation.z);
+  //std::cout << "map: " << waypoint_quat.toRotationMatrix().eulerAngles(0, 1, 2)*180/M_PI << ", " << acos(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w)*2.0*180/M_PI << std::endl;
+
+  local_waypoint_list_ = getPath(robot_pose(0),
+                                 robot_pose(1),
+                                 robot_quat.toRotationMatrix().eulerAngles(0, 1, 2)(2),
+                                 global_waypoint_list_[current_global_waypoint_index_].pose.position.x,
+                                 global_waypoint_list_[current_global_waypoint_index_].pose.position.y,
+                                 waypoint_quat.toRotationMatrix().eulerAngles(0, 1, 2)(2));
+  current_local_waypoint_index_ = 1;
+  return 1;
 }
 
 int GoalPositionUpdater::checkPosition() {
@@ -177,11 +190,21 @@ int GoalPositionUpdater::checkPosition() {
 }
 
 void GoalPositionUpdater::joy_callback(const sensor_msgs::Joy::ConstPtr& msg) {
-  if(msg->buttons.size() > 5 &&  msg->buttons[5] == 1 && last_joy_msg_.buttons[5] == 0){
-
+  if (local_waypoint_list_.empty() || last_joy_msg_.buttons.empty()) {
+    last_joy_msg_ = *msg;
+    return;
   }
-  if(msg->buttons.size() > 6 && msg->buttons[6] == 1 && last_joy_msg_.buttons[6] == 0){
-
+  if(msg->buttons.size() > 5 &&  msg->buttons[5] == 1 && last_joy_msg_.buttons[5] == 0){
+    if(++current_global_waypoint_index_>=global_waypoint_list_.size()){
+      current_global_waypoint_index_ = 0;
+    }
+    recomputeLocalPath();
+  }
+  if(msg->buttons.size() > 4 && msg->buttons[4] == 1 && last_joy_msg_.buttons[4] == 0){
+    if(current_global_waypoint_index_--<=0){
+      current_global_waypoint_index_ = global_waypoint_list_.size()-1;
+    }
+    recomputeLocalPath();
   }
   last_joy_msg_ = *msg;
 }

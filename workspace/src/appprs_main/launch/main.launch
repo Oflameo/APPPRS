@@ -12,6 +12,8 @@
     <param name="waypoint_file" value="$(arg map_folder)/$(arg waypoint_file_name)"/>
   </node>
 
+  <node name="gamepad" pkg="joy" type="joy_node" respawn="false" output="screen" />
+
   <!-- add map loader -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_folder)/$(arg map_name)" respawn="false" output="screen" />
 
