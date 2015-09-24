@@ -13,6 +13,7 @@
 #include <Eigen/Dense>
 #include <nav_msgs/Path.h>
 #include <std_msgs/Float32.h>
+#include <sensor_msgs/Joy.h>
 #include "appprs_main/GoalPositionUpdater.h"
 #include "appprs_main/localPP.h"
 #include "appprs_main/p_control_path_planner.h"
@@ -25,6 +26,7 @@ goals_received_(0), current_global_waypoint_index_(0), current_local_waypoint_in
   steer_command_publisher_ = nh_.advertise<std_msgs::Float32>("/steerCommand", 1);
   speed_command_publisher_ = nh_.advertise<std_msgs::Float32>("/speedCommand", 1);
   goal_subscriber_ = nh_.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 10, &GoalPositionUpdater::goal_callback, this);
+  joy_subscriber_ = nh_.subscribe<sensor_msgs::Joy>("/joy", 10, &GoalPositionUpdater::joy_callback, this);
   timer_ = nh_.createTimer(ros::Duration(0.1), &GoalPositionUpdater::timer_callback, this);
   ros::NodeHandle pnh("~");
   std::string waypoint_file_name;
@@ -172,6 +174,16 @@ int GoalPositionUpdater::checkPosition() {
     return 1;
   return 0;
 
+}
+
+void GoalPositionUpdater::joy_callback(const sensor_msgs::Joy::ConstPtr& msg) {
+  if(msg->buttons.size() > 5 &&  msg->buttons[5] == 1 && last_joy_msg_.buttons[5] == 0){
+
+  }
+  if(msg->buttons.size() > 6 && msg->buttons[6] == 1 && last_joy_msg_.buttons[6] == 0){
+
+  }
+  last_joy_msg_ = msg;
 }
 
 void GoalPositionUpdater::computeAndPublishNextCommand() {

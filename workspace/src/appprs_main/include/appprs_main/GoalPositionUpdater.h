@@ -14,12 +14,14 @@
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <sensor_msgs/Joy.h>
 
 class GoalPositionUpdater {
 public:
   GoalPositionUpdater();
   virtual ~GoalPositionUpdater();
   void goal_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+  void joy_callback(const sensor_msgs::Joy::ConstPtr& msg);
   void timer_callback(const ros::TimerEvent& e);
   inline Eigen::Vector3d getLastGoal() {return last_goal_;}
   inline Eigen::Vector3d getCurrentGoal() {return current_goal_;}
@@ -32,12 +34,14 @@ private:
   ros::Publisher steer_command_publisher_;
   ros::Publisher speed_command_publisher_;
   ros::Subscriber goal_subscriber_;
+  ros::Subscriber joy_subscriber_;
   Eigen::Vector3d last_goal_, current_goal_;
   ros::Timer timer_;
   double distance_threshold_;
   int goals_received_;
   std::vector<geometry_msgs::PoseStamped> global_waypoint_list_, local_waypoint_list_;
   size_t current_global_waypoint_index_, current_local_waypoint_index_;
+  sensor_msgs::Joy last_joy_msg_;
 
   int checkPosition();
   void computeAndPublishNextCommand();
