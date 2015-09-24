@@ -183,7 +183,7 @@ void GoalPositionUpdater::joy_callback(const sensor_msgs::Joy::ConstPtr& msg) {
   if(msg->buttons.size() > 6 && msg->buttons[6] == 1 && last_joy_msg_.buttons[6] == 0){
 
   }
-  last_joy_msg_ = msg;
+  last_joy_msg_ = *msg;
 }
 
 void GoalPositionUpdater::computeAndPublishNextCommand() {
