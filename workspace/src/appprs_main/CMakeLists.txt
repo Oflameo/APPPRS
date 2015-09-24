@@ -134,6 +134,11 @@ add_executable(talker src/talker.cpp)
 target_link_libraries(talker ${catkin_LIBRARIES})
 add_dependencies(talker appprs_main_generate_messages_cpp)
 
+add_executable(JoystickMiddleman src/JoystickMiddleman.cpp)
+target_link_libraries(JoystickMiddleman ${catkin_LIBRARIES})
+add_dependencies(JoystickMiddleman appprs_main_generate_messages_cpp)
+
+
 #add_executable(PIDSteerCntrl src/PIDSteerCntrl.cpp)
 #target_link_libraries(PIDSteerCntrl ${catkin_LIBRARIES})
 #add_dependencies(PIDSteerCntrl appprs_main_generate_messages_cpp)

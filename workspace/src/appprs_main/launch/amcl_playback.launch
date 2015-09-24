@@ -14,7 +14,7 @@
     <param name="use_map_topic" value="true"/>       <!-- subscribes to map topic rather than making  -->
     <param name="ymax" value="50.0"/>
     <param name="delta" value="0.05"/>        <!-- resolution of the octomap -->
-    <param name="maxUrange" value="5.0"/>     <!-- usable range of the laser scanner -->
+    <param name="maxUrange" value="30.0"/>     <!-- usable range of the laser scanner -->
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="baselink_laser_broadcaster" args="0 0 0 0 0 0 1 base_link laser 100" />

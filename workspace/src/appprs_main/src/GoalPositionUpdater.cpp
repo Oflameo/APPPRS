@@ -170,7 +170,7 @@ int GoalPositionUpdater::checkPosition() {
   }
   Eigen::Vector3d base_pose = Eigen::Vector3d (transform_r_base.getOrigin().x(),transform_r_base.getOrigin().y(),transform_r_base.getOrigin().z());
 
-  if (base_pose[0] > -0.5)
+  if (base_pose[0] > -0.2)
     return 1;
   return 0;
 
@@ -208,7 +208,7 @@ void GoalPositionUpdater::computeAndPublishNextCommand() {
   speed_command_publisher_.publish(speed_cmd_msg); //publish message
 
   //std::cout << "Send speed: " << speed_cmd_msg.data << std::endl;
-  speed_command_publisher_.publish(speed_cmd_msg); //publish message
+  //speed_command_publisher_.publish(speed_cmd_msg); //publish message
 
  
 
