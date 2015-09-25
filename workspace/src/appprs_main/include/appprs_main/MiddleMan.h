@@ -24,10 +24,17 @@ private:
   ros::Subscriber speed_command_subscriber_;
   ros::Publisher steer_command_publisher_;
   ros::Publisher speed_command_publisher_;
+  ros::Timer watchdog_timer_;
+  float last_speed_;
+  float last_steer_;
 
   void pathSpeedCallback(const std_msgs::Float32::ConstPtr& msg);
   void pathSteerCallback(const std_msgs::Float32::ConstPtr& msg);
   void joystickCallback(const sensor_msgs::Joy::ConstPtr& msg);
+  void timerCallback(const ros::TimerEvent& e);
+  void sendSpeed(float speed);
+  void sendSteer(float steer);
+
 
   sensor_msgs::Joy last_gamepad_msg_;
 };
