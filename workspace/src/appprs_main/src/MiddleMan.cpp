@@ -11,9 +11,9 @@ const size_t button = 0;
 const size_t steer_axis = 0;
 const size_t speed_axis = 1;
 const float speed_factor = 1.0;
-const float steer_factor = -30.0;
+const float steer_factor = -23.0;
 const float max_speed_acc = 0.1;
-const float max_steer_acc = 1;
+const float max_steer_acc = 2;
 
 MiddleMan::MiddleMan():
   last_speed_(0.0), last_steer_(0.0){

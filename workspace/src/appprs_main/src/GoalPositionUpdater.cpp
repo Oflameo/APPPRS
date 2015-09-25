@@ -223,7 +223,7 @@ void GoalPositionUpdater::computeAndPublishNextCommand() {
   float theta = atan2(waypoint_pose[1], waypoint_pose[0]);
 
   std_msgs::Float32 steer_cmd_msg, speed_cmd_msg;
-  steer_cmd_msg.data=std::min(std::max(-theta*180/M_PI, -35.0), 35.0);
+  steer_cmd_msg.data=std::min(std::max(-theta*180/M_PI, -23.0), 23.0);
   speed_cmd_msg.data=(40.0-fabs(steer_cmd_msg.data))*(1/40.0); //between 0.125 at 35deg and 1 at 0 deg
 
   ROS_DEBUG_STREAM("Send angle: " << steer_cmd_msg.data << ", velocity: " << speed_cmd_msg.data);
