@@ -1,11 +1,12 @@
 <launch>
 
-  <arg name="map_folder" default="$(find appprs_main)/maps/cmu_level1"/>
+  <arg name="map_folder" default="$(find appprs_main)/maps/fair/run02"/>
   <arg name="map_name" default="map.yaml"/>
   <arg name="waypoint_file_name" default="waypoints.txt"/>
   
   <param name="use_sim_time" value="true" />
   
+  <node pkg="appprs_main" type="arduinoListener" name="serial_to_tf" />
   <include file="$(find appprs_main)/launch/amcl_playback.launch"/>
  
   <node name="waypoint_manager" pkg="appprs_main" type="goal_updater_node" respawn="false" output="screen">
