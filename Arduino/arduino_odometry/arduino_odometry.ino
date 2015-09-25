@@ -45,7 +45,7 @@ const int speedServoPin = 12;
 //**Steering Servo setup***********
 Servo steeringServo;
 int maxSteerAngle = 23;
-int servoTrim = -5;  //positive trim goes left
+int servoTrim = -2;  //positive trim goes left
 int servoRange = 90;  //rotational range of servo, from full CW to full CCW
 int steeringDemand;
 //************************
@@ -60,7 +60,7 @@ int steeringDemand;
 //**Velocity Servo setup***********
 Servo speedServo;
 float maxSpeed = 4;  // m/s
-int speedTrim = 5;  //positive trim goes left
+int speedTrim = 0;  //positive trim goes left
 int speedRange = 90;  //rotational range of servo, from full CW to full CCW
 int speedDemand;
 //************************
@@ -72,8 +72,13 @@ int speedDemand;
   int maxPower = 30;
   int motorPower = 0;
   
+  float steerError = 0;
+  float steerAngle = 0;
+  float steerP = 1;
+  float steerD = .01;
 
 
+  long timeDiff;
 
 
 
@@ -98,9 +103,9 @@ int32_t AcXAccm, AcYAccm, AcZAccm, GyXAccm, GyYAccm, GyZAccm;
 
   void steerCommand_cb( const std_msgs::Float32& steer_cmd_msg)
   {
-  setSteerAngle(steer_cmd_msg.data);
+  //setSteerAngle(steer_cmd_msg.data);
 //    setSteerAngle(cmd_msg.data[1]);
-
+    steerError = steer_cmd_msg.data;
   }
   
   void speedCommand_cb( const std_msgs::Float32& speed_cmd_msg)
@@ -157,7 +162,7 @@ void setup()
   
   
   
-  //setSteerAngle(0);
+  setSteerAngle(0);
   
   
   delay(3000);
@@ -211,9 +216,7 @@ void setup()
 
 
 void loop()
-{  
-  
-  
+{    
 
   
 
@@ -226,7 +229,7 @@ void loop()
 
   numSamples = 0;
 
-  sampleStartTime = millis();
+  //sampleStartTime = millis();
   
   /*do
   {
@@ -302,15 +305,24 @@ void loop()
   
   test.data[4]=dist;
 //  Serial.print
-  Speed=(dist*TicCoef/1000)/(float(millis()-oldTime)/1000);
+  
+  steerAngle = steerError*steerP + (-steerError*steerD)/(timeDiff);
+  setSteerAngle(steerAngle);
+  
+  Speed=(dist*TicCoef/1000)/(float(timeDiff)/1000);
+  motorPower = speedSP*speedFF;// + (speedSP - Speed);
+  setPower(motorPower);
+  
+  
+  
+
+
+  timeDiff = millis()-oldTime;
   oldTime=millis();
   totalDist=totalDist+dist;
   dist=0;  
   
-  motorPower = speedSP*speedFF;// + (speedSP - Speed);
-  setPower(motorPower);
-  
-  Serial.print("speed: ");Serial.println(Speed);
+  //Serial.print("speed: ");Serial.println(Speed);
   
 
 
@@ -334,7 +346,7 @@ void TachRead ()
 
 void setSteerAngle(float _angleIn)
 {
-  _angleIn = -1*constrain(_angleIn, -1*maxSteerAngle, maxSteerAngle) + servoTrim + 90;
+  _angleIn = 1*constrain(_angleIn, -1*maxSteerAngle, maxSteerAngle) + servoTrim + 90;
   steeringServo.write(_angleIn);
 }
 
@@ -342,6 +354,6 @@ void setPower(float _powerIn)
 {
   _powerIn = constrain(_powerIn, -1*maxPower, maxPower);
   _powerIn = map(_powerIn, -100, 100, 0, 180);
-  Serial.print("power set: "); Serial.print(_powerIn);
+  //Serial.print("power set: "); Serial.print(_powerIn); Serial.print(" ");
   speedServo.write(_powerIn);
 }
