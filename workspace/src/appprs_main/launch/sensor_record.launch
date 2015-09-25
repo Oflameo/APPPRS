@@ -1,0 +1,7 @@
+<launch>
+  
+  <include file="$(find appprs_main)/launch/dead_reckoning.launch"/>
+  <include file="$(find appprs_main)/launch/hokuyo.launch"/>
+   
+  
+</launch>
