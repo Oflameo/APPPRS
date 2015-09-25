@@ -30,7 +30,7 @@ const int tachPinB = 3;
 int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ,dist,tacState, totalDist = 0;
 unsigned long oldTime;
 float Speed=0;
-float TicCoef=1.1; // mm/tic
+float TicCoef=1.3522*.5; // mm/tic
 
 ros::NodeHandle  nh;
 
@@ -66,9 +66,11 @@ int speedDemand;
 //************************
 
   float speedP = 1.0;
-  float speedFF = .5;
-  float motorPower = 0;
-  float speedSP = 0;
+  float speedFF = 10.0;
+  float speedSP = 0.0;
+  
+  int maxPower = 30;
+  int motorPower = 0;
   
 
 
@@ -155,7 +157,7 @@ void setup()
   
   
   
-  setSteerAngle(0);
+  //setSteerAngle(0);
   
   
   delay(3000);
@@ -299,14 +301,18 @@ void loop()
   test.data[3]=GyZ;
   
   test.data[4]=dist;
-  Speed=(dist*TicCoef/1000)/((millis()-oldTime)/1000);
+//  Serial.print
+  Speed=(dist*TicCoef/1000)/(float(millis()-oldTime)/1000);
   oldTime=millis();
   totalDist=totalDist+dist;
   dist=0;  
   
-  power = speedSet*FF + (speedSet - Speed);
+  motorPower = speedSP*speedFF;// + (speedSP - Speed);
+  setPower(motorPower);
   
- // Serial.println(millis());
+  Serial.print("speed: ");Serial.println(Speed);
+  
+
 
   //Serial.print("GX: "); Serial.print(GyX);
   //Serial.print("\tdist: "); Serial.print(totalDist);
@@ -335,6 +341,7 @@ void setSteerAngle(float _angleIn)
 void setPower(float _powerIn)
 {
   _powerIn = constrain(_powerIn, -1*maxPower, maxPower);
-  _powerIn = map(_powerIn, -100, 100, 0, 180)
+  _powerIn = map(_powerIn, -100, 100, 0, 180);
+  Serial.print("power set: "); Serial.print(_powerIn);
   speedServo.write(_powerIn);
 }
