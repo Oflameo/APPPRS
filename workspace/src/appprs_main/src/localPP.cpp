@@ -44,7 +44,7 @@ std::vector<geometry_msgs::PoseStamped > getPath(float xa, float ya, float Tha, 
   kdb=0;                              //derivative of curvature at end
 
 
-  float n[6]={1.5,1.5,0,0,0,0};  //These are the shape factors which will change the global spline characteristics
+  float n[6]={3.0,3.0,0,0,0,0};  //These are the shape factors which will change the global spline characteristics
 
 
   //x coordinate coefficients for parametric spline
