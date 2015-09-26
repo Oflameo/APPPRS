@@ -107,7 +107,7 @@ int32_t AcXAccm, AcYAccm, AcZAccm, GyXAccm, GyYAccm, GyZAccm;
   {
     lastSteerError = steerError;
     steerError = steer_cmd_msg.data;
-    steerAngle = steerError*steerP + ((steerError-lastSteerError)*steerD)/(timeDiff);
+    steerAngle = steerError*steerP;// + ((steerError-lastSteerError)*steerD)/(timeDiff);
     setSteerAngle(steerAngle);
   }
   
