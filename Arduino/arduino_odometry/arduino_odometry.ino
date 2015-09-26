@@ -65,13 +65,7 @@ int speedRange = 90;  //rotational range of servo, from full CW to full CCW
 int speedDemand;
 //************************
 
-  float speedP = 1.0;
-  float speedFF = 10.0;
-  float speedSP = 0.0;
-  
   int maxPower = 30;
-  int motorPower = 0;
-  
 
 
 
@@ -95,19 +89,42 @@ int16_t AcZcal = 0;
 int32_t AcXAccm, AcYAccm, AcZAccm, GyXAccm, GyYAccm, GyZAccm;
 
 
+long curSteerTime = 0;
+long lastSteerTime = 0;
+float curSteerError = 0;
+float lastSteerError = 0;
+float steerP = 1.0;
+float steerD = 0.00001;
 
   void steerCommand_cb( const std_msgs::Float32& steer_cmd_msg)
   {
-  setSteerAngle(steer_cmd_msg.data);
-//    setSteerAngle(cmd_msg.data[1]);
-
+    curSteerTime = micros();
+    
+    curSteerError = steer_cmd_msg.data;
+    
+    if(lastSteerTime > 5000) 
+      setSteerAngle( curSteerError*steerP + ((curSteerError - lastSteerError)*steerD) / (curSteerTime - lastSteerTime));
+    else
+      setSteerAngle(0);
+  
+    lastSteerError = curSteerError;
+    lastSteerTime = curSteerTime;
   }
+
+
+long curSpeedTime = 0;
+long lastSpeedTime = 0;
+float curSpeedError = 0;
+float lastSpeedError = 0;
+float speedP = 1.0;
+float speedFF = 10.0;
+float speedSP = 0;
   
   void speedCommand_cb( const std_msgs::Float32& speed_cmd_msg)
   {
-  //setSteerAngle(cmd_msg.data);
-  //setPower(speed_cmd_msg.data);
     speedSP = speed_cmd_msg.data;
+    
+    setPower(speedSP*speedFF /* + (speedSP - Speed)*/ );
   }
 
 
@@ -307,8 +324,6 @@ void loop()
   totalDist=totalDist+dist;
   dist=0;  
   
-  motorPower = speedSP*speedFF;// + (speedSP - Speed);
-  setPower(motorPower);
   
   Serial.print("speed: ");Serial.println(Speed);
   
