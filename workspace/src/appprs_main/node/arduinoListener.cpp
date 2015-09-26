@@ -15,6 +15,7 @@ const float dist_per_tick = 1.3522*0.5*0.001;//units are meters
 double g_x=0, g_y=0;
 double g_yaw=0, g_pitch=0, g_roll=0;
 double gph=0, g_oldTime=0,totalDist=0;
+float initFlag=0.0;
 double PI=3.1415926535897932384;
 
 
@@ -29,7 +30,8 @@ void chatterCallback(const std_msgs::Int16MultiArray& test)
 {
 
   double newTime = ros::Time::now().toSec(); //current time
-
+if (initFlag)
+ {
   g_yaw=g_yaw+(cnvGyZ(test.data[3])*(newTime-g_oldTime)); //discreet integration to calc yaw
   g_pitch+=cnvGyX(test.data[1])*(newTime-g_oldTime); //discreet integration to calc pitch
   g_roll+=cnvGyY(test.data[2])*(newTime-g_oldTime);  //discreet integration to calc roll
@@ -37,7 +39,7 @@ void chatterCallback(const std_msgs::Int16MultiArray& test)
   g_x+=cos(g_yaw*PI/180)*test.data[4]*dist_per_tick;
   g_y+=sin(g_yaw*PI/180)*test.data[4]*dist_per_tick;
 
-  //ROS_INFO("X=%f, Y=%f, Yaw = %f degrees", g_x, g_y,g_yaw); //print results
+  //ROS_INFO("X=%f, Y=%f, Yaw = %f degrees, time =%f", g_x, g_y,g_yaw, newTime-g_oldTime); //print results
   g_oldTime=newTime; //record the time
 
   broadcaster->sendTransform(
@@ -45,6 +47,9 @@ void chatterCallback(const std_msgs::Int16MultiArray& test)
           tf::Transform(tf::createQuaternionFromYaw(g_yaw*PI/180), tf::Vector3(g_x, g_y, 0)),
 //          tf::Transform(tf::createQuaternionFromRPY(g_roll*PI/180, g_pitch*PI/180, g_yaw*PI/180), tf::Vector3(g_x, g_y, 0)),
           ros::Time::now(),"odom", "base_link")); //Transmit TF
+ }
+ g_oldTime=newTime; //record the time
+initFlag=1;
 }
 
 

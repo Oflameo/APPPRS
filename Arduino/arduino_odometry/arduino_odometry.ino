@@ -325,7 +325,7 @@ void loop()
   dist=0;  
   
   
-  Serial.print("speed: ");Serial.println(Speed);
+  //Serial.print("speed: ");Serial.println(Speed);
   
 
 
@@ -357,6 +357,6 @@ void setPower(float _powerIn)
 {
   _powerIn = constrain(_powerIn, -1*maxPower, maxPower);
   _powerIn = map(_powerIn, -100, 100, 0, 180);
-  Serial.print("power set: "); Serial.print(_powerIn);
+ //Serial.print("power set: "); Serial.print(_powerIn);
   speedServo.write(_powerIn);
 }

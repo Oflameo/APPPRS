@@ -25,7 +25,7 @@ public:
   void timer_callback(const ros::TimerEvent& e);
   inline Eigen::Vector3d getLastGoal() {return last_goal_;}
   inline Eigen::Vector3d getCurrentGoal() {return current_goal_;}
-  int recomputeLocalPath();
+  int recomputeLocalPath(bool use_last_pose=false, const geometry_msgs::PoseStamped& last_pose = geometry_msgs::PoseStamped());
 private:
   ros::NodeHandle nh_;
   tf::TransformListener tf_listener_;
