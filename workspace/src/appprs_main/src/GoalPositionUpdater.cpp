@@ -119,13 +119,14 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
   //check if local waypoint has been reached
   int result = checkPosition();
   if (result >= 1) { //advance to next local  waypoint
+    geometry_msgs::PoseStamped last_waypoint = local_waypoint_list_[current_local_waypoint_index_];
     ++current_local_waypoint_index_;
     if (current_local_waypoint_index_>=local_waypoint_list_.size()-2) { //advance to next global waypoint
       ++current_global_waypoint_index_;
       if(current_global_waypoint_index_>=global_waypoint_list_.size()){
         current_global_waypoint_index_ = 0;
       }
-      recomputeLocalPath();
+      recomputeLocalPath(true, last_waypoint);
     }
   }
 
@@ -140,7 +141,7 @@ void GoalPositionUpdater::timer_callback(const ros::TimerEvent& e) {
   //std::cout << "quat w comp " << robot_quat.w() << std::endl;
 }
 
-int GoalPositionUpdater::recomputeLocalPath(){
+int GoalPositionUpdater::recomputeLocalPath(bool use_last_pose, const geometry_msgs::PoseStamped& last_pose){
   //obtain current location
   tf::StampedTransform transform_w_b;
   try{
@@ -152,8 +153,17 @@ int GoalPositionUpdater::recomputeLocalPath(){
     //ROS_ERROR("%s",ex.what());
     //ros::Duration(1.0).sleep();
   }
-  Eigen::Vector3d robot_pose = Eigen::Vector3d (transform_w_b.getOrigin().x(),transform_w_b.getOrigin().y(),transform_w_b.getOrigin().z());
-  Eigen::Quaterniond robot_quat = Eigen::Quaterniond (transform_w_b.getRotation().getW(), transform_w_b.getRotation().getX(), transform_w_b.getRotation().getY(), transform_w_b.getRotation().getZ());
+
+  Eigen::Vector3d robot_pose;
+  Eigen::Quaterniond robot_quat;
+  if(use_last_pose){
+    robot_pose = Eigen::Vector3d (last_pose.pose.position.x,last_pose.pose.position.y,last_pose.pose.position.z);
+    robot_quat = Eigen::Quaterniond (last_pose.pose.orientation.w, last_pose.pose.orientation.x, last_pose.pose.orientation.y, last_pose.pose.orientation.z);
+
+  } else {
+    robot_pose = Eigen::Vector3d (transform_w_b.getOrigin().x(),transform_w_b.getOrigin().y(),transform_w_b.getOrigin().z());
+    robot_quat = Eigen::Quaterniond (transform_w_b.getRotation().getW(), transform_w_b.getRotation().getX(), transform_w_b.getRotation().getY(), transform_w_b.getRotation().getZ());
+  }
 
   //std::cout << "robot: " << robot_quat.toRotationMatrix().eulerAngles(0, 1, 2)*180/M_PI << ", " << acos(robot_quat.w())*2.0*180/M_PI << std::endl;
   Eigen::Quaterniond waypoint_quat(global_waypoint_list_[current_global_waypoint_index_].pose.orientation.w,
