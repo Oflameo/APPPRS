@@ -44,7 +44,7 @@ const int speedServoPin = 12;
 
 //**Steering Servo setup***********
 Servo steeringServo;
-int maxSteerAngle = 23;
+int maxSteerAngle = 18;
 int servoTrim = -2;  //positive trim goes left
 int servoRange = 90;  //rotational range of servo, from full CW to full CCW
 int steeringDemand;
@@ -69,10 +69,12 @@ int speedDemand;
   float speedFF = 10.0;
   float speedSP = 0.0;
   
+  
   int maxPower = 30;
   int motorPower = 0;
   
   float steerError = 0;
+  float lastSteerError = 0;
   float steerAngle = 0;
   float steerP = 1;
   float steerD = .01;
@@ -103,9 +105,10 @@ int32_t AcXAccm, AcYAccm, AcZAccm, GyXAccm, GyYAccm, GyZAccm;
 
   void steerCommand_cb( const std_msgs::Float32& steer_cmd_msg)
   {
-  //setSteerAngle(steer_cmd_msg.data);
-//    setSteerAngle(cmd_msg.data[1]);
+    lastSteerError = steerError;
     steerError = steer_cmd_msg.data;
+    steerAngle = steerError*steerP + ((steerError-lastSteerError)*steerD)/(timeDiff);
+    setSteerAngle(steerAngle);
   }
   
   void speedCommand_cb( const std_msgs::Float32& speed_cmd_msg)
@@ -306,8 +309,9 @@ void loop()
   test.data[4]=dist;
 //  Serial.print
   
-  steerAngle = steerError*steerP + (-steerError*steerD)/(timeDiff);
+  steerAngle = steerError*steerP + ((steerError-lastSteerError)*steerD)/(timeDiff);
   setSteerAngle(steerAngle);
+  
   
   Speed=(dist*TicCoef/1000)/(float(timeDiff)/1000);
   motorPower = speedSP*speedFF;// + (speedSP - Speed);
