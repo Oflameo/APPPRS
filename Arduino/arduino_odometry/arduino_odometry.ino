@@ -94,7 +94,7 @@ long lastSteerTime = 0;
 float curSteerError = 0;
 float lastSteerError = 0;
 float steerP = 1.0;
-float steerD = 0.001; //was x 100
+float steerD = 5.0; //was x 100
 
   void steerCommand_cb( const std_msgs::Float32& steer_cmd_msg)
   {
