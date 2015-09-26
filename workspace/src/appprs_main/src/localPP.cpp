@@ -106,7 +106,7 @@ std::vector<geometry_msgs::PoseStamped > getPath(float xa, float ya, float Tha, 
 
   //std::cout << b0 << ", " << b1 << ", " << b2 << ", " << b3 << ", " << b4 << ", " << b5 << ", " << b6 << ", " << b7 << std::endl;
 
-  int numWays=10;                     //how many subdivions will be in my spline
+  int numWays=15;                     //how many subdivions will be in my spline
   float px;     //multi array of x points
   float py;     //multi array of y points
   std::vector<geometry_msgs::PoseStamped > return_points;
