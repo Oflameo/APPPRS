@@ -109,7 +109,8 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(include)
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS},
+  ${PCL_INCLUDE_DIRS}
 )
 
 # Declare a cpp library
@@ -127,6 +128,7 @@ target_link_libraries(goal_updater_node
   ${catkin_LIBRARIES}
   appprs_main
 )
+
 
 add_executable(servoTester src/servoTester.cpp)
 target_link_libraries(servoTester ${catkin_LIBRARIES})
@@ -155,6 +157,13 @@ add_dependencies(arduinoListener appprs_main_generate_gencpp)
 add_executable(scan_to_point_cloud node/scan_to_point_cloud.cpp)
 target_link_libraries(scan_to_point_cloud ${catkin_LIBRARIES})
 add_dependencies(scan_to_point_cloud appprs_main_generate_gencpp)
+
+
+add_executable(point_cloud_filter node/point_cloud_filter.cpp)
+target_link_libraries(point_cloud_filter ${catkin_LIBRARIES}
+${PCL_COMMON_LIBRARIES}
+${PCL_IO_LIBRARIES})
+add_dependencies(point_cloud_filter appprs_main_generate_gencpp)
 
 #add_executable(P_control_path_planner src/P_control_path_planner.cpp)
 #target_link_libraries(P_control_path_planner ${catkin_LIBRARIES})

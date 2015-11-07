@@ -1,9 +1,12 @@
 #include "ros/ros.h"
 #include "tf/transform_listener.h"
-#include "sensor_msgs/PointCloud.h"
+#include "sensor_msgs/PointCloud2.h"
 #include "tf/message_filter.h"
 #include "message_filters/subscriber.h"
 #include "laser_geometry/laser_geometry.h"
+
+
+
 
 class LaserScanToPointCloud{
 
@@ -24,13 +27,13 @@ public:
     laser_notifier_.registerCallback(
       boost::bind(&LaserScanToPointCloud::scanCallback, this, _1));
     laser_notifier_.setTolerance(ros::Duration(0.01));
-    scan_pub_ = n_.advertise<sensor_msgs::PointCloud>("/my_cloud",1);
+    scan_pub_ = n_.advertise<sensor_msgs::PointCloud2>("/my_cloud",1);
   }
 
   void scanCallback (const sensor_msgs::LaserScan::ConstPtr& scan_in)
   {
-    sensor_msgs::PointCloud cloud;
-    try
+    sensor_msgs::PointCloud2 cloud;
+     try
     {
         projector_.transformLaserScanToPointCloud(
           "base_link",*scan_in, cloud,listener_);
@@ -40,8 +43,8 @@ public:
         std::cout << e.what();
         return;
     }
-    
-    // Do something with cloud.
+   
+
 
     scan_pub_.publish(cloud);
 
