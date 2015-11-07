@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   joy
   genmsg
+  laser_geometry
 )
 
 
@@ -149,6 +150,11 @@ target_link_libraries(MiddleMan ${catkin_LIBRARIES})
 add_executable(arduinoListener node/arduinoListener.cpp)
 target_link_libraries(arduinoListener ${catkin_LIBRARIES})
 add_dependencies(arduinoListener appprs_main_generate_gencpp)
+
+
+add_executable(scan_to_point_cloud node/scan_to_point_cloud.cpp)
+target_link_libraries(scan_to_point_cloud ${catkin_LIBRARIES})
+add_dependencies(scan_to_point_cloud appprs_main_generate_gencpp)
 
 #add_executable(P_control_path_planner src/P_control_path_planner.cpp)
 #target_link_libraries(P_control_path_planner ${catkin_LIBRARIES})

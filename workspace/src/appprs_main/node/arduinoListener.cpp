@@ -32,7 +32,7 @@ void chatterCallback(const std_msgs::Int16MultiArray& test)
   double newTime = ros::Time::now().toSec(); //current time
 if (initFlag)
  {
-  g_yaw=g_yaw+(cnvGyZ(test.data[3])*(newTime-g_oldTime)); //discreet integration to calc yaw
+  g_yaw=0;//g_yaw+(cnvGyZ(test.data[3])*(newTime-g_oldTime)); //discreet integration to calc yaw
   g_pitch+=cnvGyX(test.data[1])*(newTime-g_oldTime); //discreet integration to calc pitch
   g_roll+=cnvGyY(test.data[2])*(newTime-g_oldTime);  //discreet integration to calc roll
 
@@ -45,9 +45,21 @@ if (initFlag)
   broadcaster->sendTransform(
       tf::StampedTransform(
           tf::Transform(tf::createQuaternionFromYaw(g_yaw*PI/180), tf::Vector3(g_x, g_y, 0)),
-//          tf::Transform(tf::createQuaternionFromRPY(g_roll*PI/180, g_pitch*PI/180, g_yaw*PI/180), tf::Vector3(g_x, g_y, 0)),
           ros::Time::now(),"odom", "base_link")); //Transmit TF
- }
+
+
+/*
+broadcaster->sendTransform(
+      tf::StampedTransform(
+          tf::Transform(tf::createQuaternionFromYaw(0), tf::Vector3(0, 0, 0)),
+          ros::Time::now(),"map", "laser")); //Transmit TF
+ */
+
+}
+
+
+
+
  g_oldTime=newTime; //record the time
 initFlag=1;
 }
