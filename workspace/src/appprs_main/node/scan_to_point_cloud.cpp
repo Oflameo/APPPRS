@@ -31,7 +31,8 @@ public:
     laser_notifier_.registerCallback(
       boost::bind(&LaserScanToPointCloud::scanCallback, this, _1));
     laser_notifier_.setTolerance(ros::Duration(0.01));
-    scan_pub_ = n_.advertise<sensor_msgs::PointCloud2>("/my_cloud",1);
+    // topic /my_cloud is publishing old PointCloud messagetype, not PointCloud2
+    scan_pub_ = n_.advertise<sensor_msgs::PointCloud2>("/my_cloud2",1);
   }
 
 //Callback

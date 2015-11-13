@@ -14,41 +14,33 @@
 #include <pcl/filters/passthrough.h>
 
 ros::Publisher pub;
-
+// static_test_with_point_clouds.bag is publishing PointCloud on /my_cloud, not PointCloud2...
 void 
 cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
 {
-  // Create a container for the data.
-  sensor_msgs::PointCloud2 output;
+  //See tutorials section 4.2 here:  http://wiki.ros.org/pcl/Tutorials 
+  //Need to create shared pointers here - required type for pass-through filters
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
+  sensor_msgs::PointCloud2 output;  //output cloud in ROS format
 
+  // Convert to pcl cloud format from ROS msg
+  pcl::fromROSMsg (*input, *cloud);
 
-// Container for original & filtered data
-  pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
-  pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-  pcl::PCLPointCloud2 cloud_filtered_y;
+  std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
 
-  // Convert to PCL data type
-  pcl_conversions::toPCL(*input, *cloud);
+  //This is what we actually want.
+  pcl::PassThrough<pcl::PointXYZ> pass;
+  pass.setInputCloud (cloud);
+  pass.setFilterFieldName ("y");
+  pass.setFilterLimits (-4.0, 4.0);
+  pass.filter (*cloud_filtered);
 
+  std::cout << "PointCloud after filtering has: " << cloud_filtered->points.size () << " data points." << std::endl; //*
 
-//TODO: fix this filter so it doesn't throw a segfault : (
-
-  // Perform the actual filtering
-  pcl::PassThrough<pcl::PointXYZ> pass; //This is just to check against the tutorial (http://pointclouds.org/documentation/tutorials/passthrough.php)
-
- // pcl::PassThrough<pcl::PCLPointCloud2> pass; //This is what we actually want.
-
-  //pass_y.setInputCloud (cloudPtr);
-  //pass_y.setFilterFieldName ("y");
-  //pass_y.setFilterLimits (-4.0, 4.0);
-  //pass_y.filter (cloud_filtered_y);
-  // Convert to ROS data type
- // pcl_conversions::fromPCL(cloud_filtered_y, output);
-
-
-//TODO: Change input back to output once the filtering is fixed.
   // Publish the data.
-  pub.publish (input);
+  pcl::toROSMsg(*cloud_filtered, output);
+  pub.publish (output);
 }
 
 int
@@ -59,7 +51,7 @@ main (int argc, char** argv)
   ros::NodeHandle nh;
 
   // Create a ROS subscriber for the input point cloud
-  ros::Subscriber sub = nh.subscribe ("my_cloud", 1, cloud_cb);
+  ros::Subscriber sub = nh.subscribe ("my_cloud2", 1, cloud_cb);
 
   // Create a ROS publisher for the output point cloud
   pub = nh.advertise<sensor_msgs::PointCloud2> ("filtered_cloud", 1);
