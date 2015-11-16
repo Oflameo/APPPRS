@@ -18,6 +18,9 @@ find_package(catkin REQUIRED COMPONENTS
   laser_geometry
 )
 
+find_package( OpenCV REQUIRED )
+
+
 
 add_service_files(
    FILES
@@ -109,8 +112,9 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(include)
 include_directories(
-  ${catkin_INCLUDE_DIRS},
+  ${catkin_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 # Declare a cpp library
@@ -119,8 +123,8 @@ include_directories(
    src/localPP.cpp
    src/p_control_path_planner.cpp
  )
-target_link_libraries(appprs_main
-  ${catkin_LIBRARIES}
+target_link_libraries(
+appprs_main  ${OpenCV_LIBRARIES} ${catkin_LIBRARIES}
 )
 
 add_executable(goal_updater_node node/goal_updater_node.cpp)
@@ -155,9 +159,23 @@ add_dependencies(arduinoListener appprs_main_generate_gencpp)
 
 
 ## ROBO STATS WORK:  CAN'T BUILD WITH C++11 ENABLED!!!
-##add_executable(scan_to_point_cloud node/scan_to_point_cloud.cpp)
-##target_link_libraries(scan_to_point_cloud ${catkin_LIBRARIES})
-##add_dependencies(scan_to_point_cloud appprs_main_generate_gencpp)
+add_executable(image_read_test src/image_read_test.cpp)
+target_link_libraries(image_read_test 
+${OpenCV_LIBRARIES}  
+${catkin_LIBRARIES}
+${PCL_COMMON_LIBRARIES}
+${PCL_IO_LIBRARIES})
+add_dependencies(image_read_test appprs_main_generate_gencpp)
+
+
+add_executable(pcd_to_pointcloud src/pcd_to_pointcloud.cpp)
+target_link_libraries(pcd_to_pointcloud 
+${OpenCV_LIBRARIES}  
+${catkin_LIBRARIES}
+${PCL_COMMON_LIBRARIES}
+${PCL_IO_LIBRARIES})
+add_dependencies(pcd_to_pointcloud appprs_main_generate_gencpp)
+
 
 ##add_executable(point_cloud_filter node/point_cloud_filter.cpp)
 ##target_link_libraries(point_cloud_filter ${catkin_LIBRARIES}
