@@ -168,7 +168,8 @@ target_link_libraries(image_read_test
 ${OpenCV_LIBRARIES}  
 ${catkin_LIBRARIES}
 ${PCL_COMMON_LIBRARIES}
-${PCL_IO_LIBRARIES})
+${PCL_IO_LIBRARIES}
+appprs_main)
 add_dependencies(image_read_test appprs_main_generate_gencpp)
 
 
