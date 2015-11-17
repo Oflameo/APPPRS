@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package( OpenCV REQUIRED )
+find_package( Boost REQUIRED )
 
 
 
@@ -122,6 +123,8 @@ include_directories(
    src/GoalPositionUpdater.cpp
    src/localPP.cpp
    src/p_control_path_planner.cpp
+   src/singleparticle.cpp
+   
  )
 target_link_libraries(
 appprs_main  ${OpenCV_LIBRARIES} ${catkin_LIBRARIES}
@@ -159,6 +162,7 @@ add_dependencies(arduinoListener appprs_main_generate_gencpp)
 
 
 ## ROBO STATS WORK:  CAN'T BUILD WITH C++11 ENABLED!!!
+
 add_executable(image_read_test src/image_read_test.cpp)
 target_link_libraries(image_read_test 
 ${OpenCV_LIBRARIES}  

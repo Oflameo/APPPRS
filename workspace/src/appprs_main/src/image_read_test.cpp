@@ -4,7 +4,8 @@
  *  Created on: Nov 14, 2015
  *      Author: James Gabriel
  */
-
+#include <appprs_main/singleparticle.h>
+#include <ros/publisher.h>
 #include "ros/ros.h"
 #include<opencv2/opencv.hpp>
 #include<iostream>
@@ -13,7 +14,9 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-#include <ros/publisher.h>
+#include <memory>
+
+
 
 using namespace cv;
 using namespace std;
@@ -21,8 +24,11 @@ using namespace std;
 ros::Publisher pub;
 
 //Declare Functions
+//void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, cv::Mat image, std::vector<shared_ptr<single_particle>>*  ptr_ptr_container);
 void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, cv::Mat image);
 
+
+float PI=3.14159265358;
 
 int main(int argc,  char** argv)
 {
@@ -48,14 +54,18 @@ if(!image.data )
 pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
 sensor_msgs::PointCloud2 output;
 
+//Create Holder for object pointers
+//std::vector<std::shared_ptr<single_particle>> ptr_container;
+
 
 //Set Cloud Size: TODO: Make this variable in some future version based on probabilities
-(*cloud).width  = 1000;
+(*cloud).width  = 1;
 (*cloud).height = 1;
 (*cloud).points.resize ((*cloud).width * (*cloud).height);
 
 
 //Initialize Points
+//initialize_points(cloud, image, &ptr_container);
 initialize_points(cloud, image);
 
 //Print that you are done to let you know you haven't gotten cought in some
@@ -79,10 +89,12 @@ pub.publish (output);
 ros::spinOnce ();
 loop_rate.sleep();
  }
+ if(!image.data )
 	return 0;
 }
 
 
+//void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, cv::Mat image, std::vector<std::shared_ptr<single_particle>>* ptr_ptr_container)
 void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, cv::Mat image)
 {
 	 //Create your Points
@@ -109,7 +121,12 @@ void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, cv::Mat image)
 	         isbad=(good<250);
 
 		 }while(isbad && (Count<1000));
-	 
+		 float rand_th=rand()%181*PI/180;
+		//single_particle Particle((*cloud).points[i].x,(*cloud).points[i].y, rand_th);
+		 single_particle A;
+		 A.setPosition(0,0,0);
+		 // std::shared_ptr<single_particle> p1(A);
+	 //cout<<"ptr_container has:"<< ptr_container.size()<< "items in it"<<endl;
 	 }
 	 return;
 }
