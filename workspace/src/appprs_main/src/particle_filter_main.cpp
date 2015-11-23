@@ -19,6 +19,8 @@
  */
 
 #include <appprs_main/singleparticle.h>
+#include <appprs_main/particlefilter.h>
+
 #include <ros/publisher.h>
 #include "ros/ros.h"
 #include <opencv2/opencv.hpp>

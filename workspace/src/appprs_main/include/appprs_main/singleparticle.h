@@ -8,6 +8,9 @@
 #ifndef SINGLEPARTICLE_H_
 #define SINGLEPARTICLE_H_
 
+#include <vector>
+#include "Eigen/Dense"
+
 class single_particle {
 public:
 	//Default Constructor

@@ -16,7 +16,7 @@ single_particle::single_particle() {
 	theta=0;
 	x_laz=0;
 	y_laz=.25;
-	weight=0;
+	weight=1;
 }
 
 single_particle::~single_particle() {
@@ -29,7 +29,7 @@ single_particle::single_particle(float var_x, float var_y, float var_th) {
 	theta=var_th;
 	x_laz=x;
 	y_laz=y+.25;
-	weight=0;
+	weight=1;
 }
 
 float single_particle::getX() const {
