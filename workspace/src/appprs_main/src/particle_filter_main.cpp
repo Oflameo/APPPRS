@@ -41,83 +41,66 @@ using namespace std;
 ros::Publisher pub;
 
 //Declare Functions
-void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, cv::Mat image, std::vector<boost::shared_ptr<single_particle>>*  ptr_ptr_container);
-//void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, cv::Mat image);
-
 
 float PI=3.14159265358;
 
+void updateVisualization(ParticleFilter &pf,
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud ,
+		sensor_msgs::PointCloud2 &output);
+
 int main(int argc,  char** argv)
 {
-// Initialize ROS
-ros::init (argc, argv, "my_pcl_tutorial");
-ros::NodeHandle nh;
-pub = nh.advertise<sensor_msgs::PointCloud2> ("output", 1);
+	// Initialize ROS
+	ros::init (argc, argv, "my_pcl_tutorial");
+	ros::NodeHandle nh;
+	pub = nh.advertise<sensor_msgs::PointCloud2> ("output", 1);
 
-//Load the Map into Memory
-cv::Mat image;
-string imageName("/home/jamie/workspace/ConvertToImage/src/wean_map_uint8.jpg"); // by default
-image=cv::imread(imageName,CV_LOAD_IMAGE_GRAYSCALE);
+	//Create your Point Clouds Containers. One for minipulation, one for export #TPP
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+	sensor_msgs::PointCloud2 output;
 
-//Check that you got the image
-if(!image.data )                            
-{
-    cout <<  "Could not open or find the image" << std::endl ;
-    return -1;
+	//Instantiate Particle Filter
+	ParticleFilter pf=ParticleFilter();
+
+	//Set Cloud Size: TODO: Make this variable in some future version based on probabilities
+	(*cloud).width  = pf.getNumberOfParticles();
+	(*cloud).height = 1;
+	(*cloud).points.resize ((*cloud).width * (*cloud).height);
+
+
+
+
+	 //Set the reference frame for your pointcloud (ROS bookkeeping)
+	 output.header.frame_id = std::string("/odom");
+
+	//Set the loop rate for republishing points. This will cease to be necessary later on
+	 ros::Rate loop_rate(10);
+
+
+	 //Keep publishing points to RVIZ to keep the points on the screen
+	 while(nh.ok())
+	 {
+		updateVisualization(pf,cloud,output);
+		output.header.stamp = ros::Time::now();
+		pub.publish (output);
+		ros::spinOnce ();
+		loop_rate.sleep();
+	 }
+	 return 0;
 }
 
 
-//Create your Point Clouds Containers. One for minipulation, one for export #TPP
-pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-sensor_msgs::PointCloud2 output;
+void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+		cv::Mat image,
+		std::vector<boost::shared_ptr<single_particle>>* ptr_ptr_container)
 
-//Create Holder for object pointers
-std::vector<boost::shared_ptr<single_particle>> ptr_container;
-
-
-//Set Cloud Size: TODO: Make this variable in some future version based on probabilities
-(*cloud).width  = 10000;
-(*cloud).height = 1;
-(*cloud).points.resize ((*cloud).width * (*cloud).height);
-
-
-//Initialize Points
-//initialize_points(cloud, image, &ptr_container);
-initialize_points(cloud, image, &ptr_container);
-
-//Print that you are done to let you know you haven't gotten caught in some
- //sort of loop
- cout<<"done making points"<<endl;
-
-//Convert between point cloud types	 
- pcl::toROSMsg(*cloud, output);
- 
- //Set the reference frame for your pointcloud (ROS bookkeeping)
- output.header.frame_id = std::string("/odom");
- 
-//Set the loop rate for republishing points. This will cease to be necessary later on
- ros::Rate loop_rate(10);
- 
- cout<<"Pointer list has: "<<ptr_container.size()<<" Objects in it. If this number is "<<(*cloud).points.size()<<" then you are good"<<endl;
-
- //Keep publishing points to RVIZ to keep the points on the screen
- while(nh.ok())
- {
-output.header.stamp = ros::Time::now();
-pub.publish (output);
-ros::spinOnce ();
-loop_rate.sleep();
- }
- if(!image.data )
-	return 0;
-}
-
-
-void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, cv::Mat image, std::vector<boost::shared_ptr<single_particle>>* ptr_ptr_container)
 //void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, cv::Mat image)
 {
 	 //Create your Points
 	 for (size_t i = 0; i < (*cloud).points.size (); ++i)
+
+		 //Set the reference frame for your pointcloud (ROS bookkeeping)
+		 output.header.frame_id = std::string("/odom");
 	 {
 		 bool isbad=0;
 		 int  Count=0;
@@ -155,4 +138,12 @@ void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, cv::Mat image,
 	 return;
 }
 
+void updateVisualization(ParticleFilter &pf,
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+		sensor_msgs::PointCloud2 &output  )
+{
+
+	//Convert between point cloud types
+	 pcl::toROSMsg(*cloud, output);
+}
 
