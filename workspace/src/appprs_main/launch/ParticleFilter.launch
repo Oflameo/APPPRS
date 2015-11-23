@@ -1,8 +1,14 @@
 <launch>
   
+  <arg name="map_folder" default="$(find appprs_main)/maps"/>
+  <arg name="map_name" default="wean_map.yaml"/>
+
   <node pkg="tf" type="static_transform_publisher" name="baselink_laser_broadcaster" args="0 0 0 0 0 0 1 base_link laser 100" />
  <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0 0 0 0 0 0 1 map odom 100" />
  <node pkg="tf" type="static_transform_publisher" name="odom_baselink_broadcaster" args="0 0 0 0 0 0 1 odom base_link 100" />
+ <node pkg="appprs_main" type="particle_filter_main" name="particle_filter_main" />
+<!-- add map loader -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_folder)/$(arg map_name)" respawn="false" output="screen" />
      
 <!-- run rviz -->
   <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(find appprs_main)/config/particle_filter.rviz" />

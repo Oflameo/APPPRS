@@ -34,6 +34,7 @@
 #include <appprs_main/singleparticle.h>
 #include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 
 using namespace cv;
 using namespace std;
@@ -44,109 +45,150 @@ ros::Publisher pub;
 
 float PI=3.14159265358;
 
-void updateVisualization(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+void temp_initialize_points(pcl::PointCloud<pcl::PointXYZ> &cloud,
 		cv::Mat image,
-		std::vector<boost::shared_ptr<single_particle>>* ptr_ptr_container,
-		sensor_msgs::PointCloud2 output);
+		std::vector<boost::shared_ptr<single_particle>> &ptr_container,
+		sensor_msgs::PointCloud2 &output);
+
+void updateVisualization(ParticleFilter &pf,
+		pcl::PointCloud<pcl::PointXYZ> &cloud,
+		sensor_msgs::PointCloud2 &output,
+		std::vector<boost::shared_ptr<single_particle>> &temp_ptr_container,
+		ros::NodeHandle nh);
+
 
 int main(int argc,  char** argv)
 {
 	// Initialize ROS
 	ros::init (argc, argv, "my_pcl_tutorial");
 	ros::NodeHandle nh;
+
 	pub = nh.advertise<sensor_msgs::PointCloud2> ("output", 1);
 
+	std::vector<boost::shared_ptr<single_particle>> temp_ptr_container;
+
 	//Create your Point Clouds Containers. One for minipulation, one for export #TPP
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZ> cloud;
 	sensor_msgs::PointCloud2 output;
 
 	//Instantiate Particle Filter
 	ParticleFilter pf=ParticleFilter();
 
 	//Set Cloud Size: TODO: Make this variable in some future version based on probabilities
-	(*cloud).width  = pf.getNumberOfParticles();
-	(*cloud).height = 1;
-	(*cloud).points.resize ((*cloud).width * (*cloud).height);
+	(cloud).width  = pf.getNumberOfParticles();
+	(cloud).height = 1;
+	(cloud).points.resize ((cloud).width * (cloud).height);
+
+	std::string imageName("/home/jamie/workspace/ConvertToImage/src/wean_map_uint8.jpg"); // by default
+	cv::Mat map_image=cv::imread(imageName,CV_LOAD_IMAGE_GRAYSCALE);
+
+	//Check that you got the image
+	if(!map_image.data )
+	{
+		throw 0;
+	}
+
+
+	temp_initialize_points(cloud, map_image ,temp_ptr_container, output);
+
+	updateVisualization(pf, cloud, output,temp_ptr_container,nh);
 
 
 
 
-	 //Set the reference frame for your pointcloud (ROS bookkeeping)
-	 output.header.frame_id = std::string("/odom");
+	return 0;
+}
+
+
+void temp_initialize_points(pcl::PointCloud<pcl::PointXYZ> &cloud,
+		cv::Mat image,
+		std::vector<boost::shared_ptr<single_particle>> &ptr_container,
+		sensor_msgs::PointCloud2 &output)
+{
+
+	//Set the reference frame for your pointcloud (ROS bookkeeping)
+	output.header.frame_id = std::string("/odom");
+
+
+	//Create your Points
+	for (size_t i = 0; i < (cloud).points.size (); ++i)
+	{
+		bool isbad=0;
+		int  Count=0;
+
+		float pix_x;
+		float pix_y;
+		do
+		{
+			//Start out with a random point within the sub-rectangle that I decided
+			//heuristically was a good starting spot
+			Count++;
+			pix_x=rand() % 350+350;
+			pix_y=rand() % 761;
+
+			//(cloud).points[i].x = (pix_x/10.0);
+			//(cloud).points[i].y = (pix_y/10.0);
+			//(*cloud).points[i].z = 0;
+
+			//Check what map value that point starts at using the map-image
+			int good=image.at<uchar>(800-pix_y,pix_x);
+
+			//Only allow points to exist at places with high robot-probability
+			isbad=(good<250);
+
+		}while(isbad && (Count<1000));
+		float rand_th=rand()%181*PI/180;
+
+
+		///This stuff is more advanced versions of the problem that I will solve when I can do even the most basic of operations
+
+		single_particle Particle(pix_x/10,pix_y/10, rand_th);
+	//	boost::shared_ptr<single_particle> p1(Particle);
+		auto p1 = boost::make_shared<single_particle> (Particle);
+
+		ptr_container.push_back(p1);
+
+
+	}
+	cout<<"ptr_container has:"<< (ptr_container).size()<< "items in it"<<endl;
+}
+
+void updateVisualization(ParticleFilter &pf,
+		pcl::PointCloud<pcl::PointXYZ> &cloud,
+		sensor_msgs::PointCloud2 &output,
+		std::vector<boost::shared_ptr<single_particle>> &temp_ptr_container,
+		ros::NodeHandle nh
+)
+{
+
+
+	for (int i=0; i<pf.getNumberOfParticles(); i++)
+	{
+		(cloud).points[i].x = (*temp_ptr_container.at(i)).getX();
+		(cloud).points[i].y = (*temp_ptr_container.at(i)).getY();
+		(cloud).points[i].z = 0;
+	}
+	//Convert between point cloud types
+	pcl::toROSMsg(cloud, output);
+
+	//Set the reference frame for your pointcloud (ROS bookkeeping)
+	output.header.frame_id = std::string("/odom");
 
 	//Set the loop rate for republishing points. This will cease to be necessary later on
-	 ros::Rate loop_rate(10);
+	ros::Rate loop_rate(100);
 
 
-	 //Keep publishing points to RVIZ to keep the points on the screen
-	 while(nh.ok())
-	 {
+	//This just keeps the program and point cloud displayed. Once you are calling this from another function,
+	//It doesn't need to be in an eternal loop.
+	while(nh.ok())
+	{
 		output.header.stamp = ros::Time::now();
 		pub.publish (output);
 		ros::spinOnce ();
 		loop_rate.sleep();
-	 }
-	 return 0;
+	}
+
 }
 
-
-void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
-		cv::Mat image,
-		std::vector<boost::shared_ptr<single_particle>>* ptr_ptr_container,
-		sensor_msgs::PointCloud2 output)
-
-//void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, cv::Mat image)
-{
-
-	 //Set the reference frame for your pointcloud (ROS bookkeeping)
-	 output.header.frame_id = std::string("/odom");
-
-
-	 //Create your Points
-	 for (size_t i = 0; i < (*cloud).points.size (); ++i)
-	 {
-		 bool isbad=0;
-		 int  Count=0;
-		 
-		 do
-		 {
-			 //Start out with a random point within the sub-rectangle that I decided 
-			 //heuristically was a good starting spot
-			 Count++;
-			 int pix_x=rand() % 350+350;
-			 int pix_y=rand() % 761;
-	         (*cloud).points[i].x = (pix_x/10.0);
-	         (*cloud).points[i].y = (pix_y/10.0);
-	         (*cloud).points[i].z = 0;
-		 
-	         //Check what map value that point starts at using the map-image
-	         int good=image.at<uchar>(800-pix_y,pix_x);
-	   
-	         //Only allow points to exist at places with high robot-probability
-	         isbad=(good<250);
-
-		 }while(isbad && (Count<1000));
-		 float rand_th=rand()%181*PI/180;
-
-
-///This stuff is more advanced versions of the problem that I will solve when I can do even the most basic of operations
-
-		single_particle Particle((*cloud).points[i].x,(*cloud).points[i].y, rand_th);
-		 boost::shared_ptr<single_particle> p1(new single_particle);
-
-		 (*ptr_ptr_container).push_back(p1);
-
-		 //cout<<"ptr_container has:"<< (*ptr_ptr_container).size()<< "items in it"<<endl;
-	 }
-	 return;
-}
-
-void updateVisualization(ParticleFilter &pf,
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
-		sensor_msgs::PointCloud2 &output  )
-{
-
-	//Convert between point cloud types
-	 pcl::toROSMsg(*cloud, output);
-}
 

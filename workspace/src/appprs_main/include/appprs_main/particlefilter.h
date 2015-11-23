@@ -24,7 +24,7 @@ class ParticleFilter {
     private:
         void normalizeParticleWeights();
         const int STEPS_PER_RESAMPLE = 10;
-        const int NUMBER_OF_PARTICLES = 1000;
+        const int NUMBER_OF_PARTICLES = 10000;
         std::vector<double> lastOdometry;
         std::vector<boost::shared_ptr<single_particle>> ptr_container;
     	cv::Mat map_image;
