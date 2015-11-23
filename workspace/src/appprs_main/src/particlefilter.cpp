@@ -23,6 +23,11 @@ ParticleFilter::~ParticleFilter()
 
 void ParticleFilter::odometry(std::vector<double> newOdometry) {
 
+	for(int i=0; i<ptr_container.size(); i++)
+	{
+
+	}
+
     lastOdometry.swap(newOdometry);
 }
 

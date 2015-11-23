@@ -44,9 +44,10 @@ ros::Publisher pub;
 
 float PI=3.14159265358;
 
-void updateVisualization(ParticleFilter &pf,
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud ,
-		sensor_msgs::PointCloud2 &output);
+void updateVisualization(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+		cv::Mat image,
+		std::vector<boost::shared_ptr<single_particle>>* ptr_ptr_container,
+		sensor_msgs::PointCloud2 output);
 
 int main(int argc,  char** argv)
 {
@@ -80,7 +81,6 @@ int main(int argc,  char** argv)
 	 //Keep publishing points to RVIZ to keep the points on the screen
 	 while(nh.ok())
 	 {
-		updateVisualization(pf,cloud,output);
 		output.header.stamp = ros::Time::now();
 		pub.publish (output);
 		ros::spinOnce ();
@@ -92,15 +92,18 @@ int main(int argc,  char** argv)
 
 void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 		cv::Mat image,
-		std::vector<boost::shared_ptr<single_particle>>* ptr_ptr_container)
+		std::vector<boost::shared_ptr<single_particle>>* ptr_ptr_container,
+		sensor_msgs::PointCloud2 output)
 
 //void initialize_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, cv::Mat image)
 {
+
+	 //Set the reference frame for your pointcloud (ROS bookkeeping)
+	 output.header.frame_id = std::string("/odom");
+
+
 	 //Create your Points
 	 for (size_t i = 0; i < (*cloud).points.size (); ++i)
-
-		 //Set the reference frame for your pointcloud (ROS bookkeeping)
-		 output.header.frame_id = std::string("/odom");
 	 {
 		 bool isbad=0;
 		 int  Count=0;
