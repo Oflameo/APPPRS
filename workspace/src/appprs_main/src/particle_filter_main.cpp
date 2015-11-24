@@ -35,6 +35,8 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <thread>
+#include <chrono>
 
 using namespace cv;
 using namespace std;
@@ -97,7 +99,38 @@ int main(int argc,  char** argv)
     */
 
     std::cout << "about to visualize" << std::endl;
-    updateVisualization(pf, cloud, output,nh);
+
+    // open robot log
+    ifstream robotLog("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/log/robotdata1.log");
+    string logLine;
+    if (robotLog.is_open()) {
+        cout << "Opened log" << endl;
+        while (getline(robotLog, logLine)) {
+            if (logLine.at(0) == 'L') {
+                std::cout << "LASER DATA" << std::endl;
+                pf.laser();
+            }
+            else if (logLine.at(0) == 'O') {
+                std::cout << "ODOMETRY" << std::endl;
+                std::vector<float> crap;
+                pf.odometry(crap);
+            }
+            if (pf.getStepsUntilResample() == 0) {
+                pf.resample();
+            }
+            updateVisualization(pf, cloud, output,nh);
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        }
+
+    }
+    else {
+        cout << "Could not open file" << endl;
+    }
+
+    robotLog.close();
+
+
+
 
 
 
@@ -187,7 +220,7 @@ void updateVisualization(ParticleFilter &pf,
 	output.header.frame_id = std::string("/odom");
 
 	//Set the loop rate for republishing points. This will cease to be necessary later on
-    ros::Rate loop_rate(100);
+    //ros::Rate loop_rate(100);
 
 
 	//This just keeps the program and point cloud displayed. Once you are calling this from another function,
@@ -195,13 +228,13 @@ void updateVisualization(ParticleFilter &pf,
 
     std::cout << "done converting to ROS cloud" << std::endl;
 
-	while(nh.ok())
-	{
+    //while(nh.ok())
+    //{
 		output.header.stamp = ros::Time::now();
 		pub.publish (output);
-		ros::spinOnce ();
-		loop_rate.sleep();
-	}
+        ros::spinOnce ();
+    //	loop_rate.sleep();
+    //}
 
 }
 

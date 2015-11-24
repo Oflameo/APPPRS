@@ -23,10 +23,11 @@ class ParticleFilter {
         void laser();
         void resample();
         std::vector<boost::shared_ptr<single_particle>> getParticles();
-        int getStepsPerResample();
+        int getStepsUntilResample();
         int getNumberOfParticles();
 
     private:
+        int stepsUntilResample;
         Eigen::MatrixXd map;
         void initializeParticles();
         void normalizeParticleWeights();

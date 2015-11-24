@@ -39,6 +39,7 @@ ParticleFilter::ParticleFilter()
     */
 
     initializeParticles();
+    stepsUntilResample = STEPS_PER_RESAMPLE;
 
 }
 
@@ -68,9 +69,7 @@ void ParticleFilter::initializeParticles() {
             particlesContainer.push_back(p);
         }
     }
-
     std::cout << "finished initializing particles" << std::endl;
-
 }
 
 
@@ -85,10 +84,14 @@ void ParticleFilter::odometry(std::vector<float> newOdometry) {
 
 void ParticleFilter::laser() {
 
+    stepsUntilResample--;
+    std::cout << "There are " << stepsUntilResample << " steps until resample" << std::endl;
+
 }
 
 void ParticleFilter::resample() {
-
+    std::cout << "Resampling..." << std::endl;
+    stepsUntilResample = STEPS_PER_RESAMPLE;
 }
 
 void ParticleFilter::normalizeParticleWeights() {
@@ -99,8 +102,8 @@ std::vector<boost::shared_ptr<single_particle> > ParticleFilter::getParticles() 
     return particlesContainer;
 }
 
-int ParticleFilter::getStepsPerResample() {
-    return STEPS_PER_RESAMPLE;
+int ParticleFilter::getStepsUntilResample() {
+    return stepsUntilResample;
 }
 
 int ParticleFilter::getNumberOfParticles() {
