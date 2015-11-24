@@ -113,16 +113,20 @@ int main(int argc,  char** argv)
 
             if (logLine.at(0) == 'L') {
                 //std::cout << "LASER DATA" << std::endl;
-                pf.laser();
+                std::vector<float> laserRanges;
+                for (uint i = 7; i < logLineSplit.size(); i++) {
+                    laserRanges.push_back(std::atof(logLineSplit.at(i).c_str()));
+                }
+                pf.laser(laserRanges);
             }
             else if (logLine.at(0) == 'O') {
                 //std::cout << "ODOMETRY" << std::endl;
                 std::vector<float> odometry;
                 for (uint i = 1; i < logLineSplit.size(); i++) {
                     odometry.push_back(std::atof(logLineSplit.at(i).c_str()));
-                    std::cout << odometry.at(i-1) << " ";
+                    //std::cout << odometry.at(i-1) << " ";
                 }
-                std::cout << std::endl;
+                //std::cout << std::endl;
                 pf.odometry(odometry);
             }
             if (pf.getStepsUntilResample() == 0) {

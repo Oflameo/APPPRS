@@ -20,7 +20,7 @@ class ParticleFilter {
         ParticleFilter();
         ~ParticleFilter();
         void odometry(std::vector<float> newOdometry);
-        void laser();
+        void laser(std::vector<float> laserRanges);
         void resample();
         std::vector<boost::shared_ptr<single_particle>> getParticles();
         int getStepsUntilResample();

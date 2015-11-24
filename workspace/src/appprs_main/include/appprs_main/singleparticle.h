@@ -39,13 +39,14 @@ public:
     void setMapImage(cv::Mat &map_image_in);
 
     //Output Functions
-    float laserMeasurement(std::vector<float> laserRange);
+    float laserMeasurement(std::vector<float> laserRanges);
     void move(std::vector<float> odometry);
 
 
 private:
     uchar queryMapImage(float x, float y);
-
+    std::vector<float> laserCast();
+    Eigen::MatrixXd create2DHomogeneousTransform(std::vector<float> x_y_th);
     float weight;
     std::vector<float> state;
     cv::Mat map_image;

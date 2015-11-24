@@ -51,7 +51,6 @@ ParticleFilter::ParticleFilter()
     std::normal_distribution<> movementNoise_temp(0,MOVEMENT_STD_DEV);
     std::normal_distribution<> bearingNoise_temp(0,BEARING_STD_DEV);
 
-    //rd = boost::make_shared<std::random_device> (rd_temp);
     generator = boost::make_shared<std::mt19937> (generator_temp);
     movementNoise = boost::make_shared<std::normal_distribution<>> (movementNoise_temp);
     bearingNoise = boost::make_shared<std::normal_distribution<>> (bearingNoise_temp);
@@ -105,10 +104,13 @@ void ParticleFilter::odometry(std::vector<float> newOdometry) {
     lastOdometry.swap(newOdometry);
 }
 
-void ParticleFilter::laser() {
+void ParticleFilter::laser(std::vector<float> laserRanges) {
 
-    stepsUntilResample--;
+    stepsUntilResample--;    
     //std::cout << "There are " << stepsUntilResample << " steps until resample" << std::endl;
+    for(int i = 0; i < particlesContainer.size(); i++) {
+        particlesContainer.at(i)->laserMeasurement(laserRanges);
+    }
 
 }
 
