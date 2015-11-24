@@ -43,8 +43,6 @@ ros::Publisher pub;
 
 //Declare Functions
 
-float PI=3.14159265358;
-
 void temp_initialize_points(pcl::PointCloud<pcl::PointXYZ> &cloud,
 		cv::Mat image,
 		std::vector<boost::shared_ptr<single_particle>> &ptr_container,
@@ -98,6 +96,7 @@ int main(int argc,  char** argv)
     cv::waitKey(0);
     */
 
+    std::cout << "about to visualize" << std::endl;
     updateVisualization(pf, cloud, output,nh);
 
 
@@ -167,20 +166,20 @@ void updateVisualization(ParticleFilter &pf,
 		ros::NodeHandle nh
 )
 {
-
-    //auto temp_ptr_container = pf.getParticles();
+    auto p = pf.getParticles();
 
 	for (int i=0; i<pf.getNumberOfParticles(); i++)
 	{
-        //(cloud).points[i].x = (*temp_ptr_container.at(i)).getX();
-        //(cloud).points[i].y = (*temp_ptr_container.at(i)).getY();
-        (cloud).points[i].x = pf.getParticles().at(i)->getX();
-        (cloud).points[i].y = pf.getParticles().at(i)->getY();
+        (cloud).points[i].x = p.at(i)->getX();
+        (cloud).points[i].y = p.at(i)->getY();
 		(cloud).points[i].z = 0;
         //std::cout << "cloud.points.x = " << (cloud).points[i].x << " "
         //     << "cloud.points.y = " << (cloud).points[i].y << " "
         //     << "cloud.points.z = " << (cloud).points[i].z << std::endl;
 	}
+
+    std::cout << "put everything in a cloud" << std::endl;
+
 	//Convert between point cloud types
 	pcl::toROSMsg(cloud, output);
 
@@ -188,11 +187,14 @@ void updateVisualization(ParticleFilter &pf,
 	output.header.frame_id = std::string("/odom");
 
 	//Set the loop rate for republishing points. This will cease to be necessary later on
-	ros::Rate loop_rate(100);
+    ros::Rate loop_rate(100);
 
 
 	//This just keeps the program and point cloud displayed. Once you are calling this from another function,
 	//It doesn't need to be in an eternal loop.
+
+    std::cout << "done converting to ROS cloud" << std::endl;
+
 	while(nh.ok())
 	{
 		output.header.stamp = ros::Time::now();

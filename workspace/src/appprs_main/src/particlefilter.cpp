@@ -15,6 +15,7 @@ ParticleFilter::ParticleFilter()
     }
 
     // open map
+    /*
     std::ifstream robotMap("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/map/wean.dat");
     std::string mapLine;
     map.resize(MAP_SIZE,MAP_SIZE);
@@ -35,6 +36,7 @@ ParticleFilter::ParticleFilter()
         }
     }
     robotMap.close();
+    */
 
     initializeParticles();
 
@@ -56,22 +58,23 @@ void ParticleFilter::initializeParticles() {
         int xIdx = xIndex(generator);
         int yIdx = yIndex(generator);
         //std::cout << "map coord (x,y) = " << xIdx/MAP_RESOLUTION << ", " << yIdx/MAP_RESOLUTION << " image coord (x,y) = " << MAP_SIZE-1-yIdx << ", " << xIdx << std::endl;
-        if (map(MAP_SIZE-1-yIdx,xIdx) > 0.9) {
-            std::vector<float> state;
-            state.resize(3);
-            state.at(0) = xIdx/MAP_RESOLUTION;
-            state.at(1) = yIdx/MAP_RESOLUTION;
-            state.at(2) = th(generator);
-            single_particle particle(state);
-            //boost::shared_ptr<single_particle> p(&particle);
+        if (map_image.at<uchar>(MAP_SIZE-1-yIdx,xIdx) > 250) {
+            single_particle particle;
+            particle.setX(xIdx/MAP_RESOLUTION);
+            particle.setY(yIdx/MAP_RESOLUTION);
+            particle.setTh(th(generator));
+            particle.setMapImage(map_image);
             auto p = boost::make_shared<single_particle> (particle);
             particlesContainer.push_back(p);
         }
     }
+
+    std::cout << "finished initializing particles" << std::endl;
+
 }
 
 
-void ParticleFilter::odometry(std::vector<double> newOdometry) {
+void ParticleFilter::odometry(std::vector<float> newOdometry) {
 
     for(int i = 0; i < particlesContainer.size(); i++) {
 

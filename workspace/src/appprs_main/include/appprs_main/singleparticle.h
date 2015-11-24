@@ -11,6 +11,8 @@
 #include <vector>
 #include "Eigen/Dense"
 #include <iostream>
+#include <opencv2/opencv.hpp>
+#include "tunable_parameters.h"
 
 class single_particle {
 public:
@@ -30,6 +32,10 @@ public:
     std::vector<float> getState();
 
     //Mutator Functions
+    void setX(float x);
+    void setY(float y);
+    void setTh(float th);
+    void setMapImage(cv::Mat &map_image_in);
 
     //Output Functions
     float laserMeasurement(std::vector<float> laserRange);
@@ -37,8 +43,12 @@ public:
 
 
 private:
+    uchar queryMapImage(float x, float y);
+
+
     float weight;
     std::vector<float> state;
+    cv::Mat map_image;
 
 };
 
