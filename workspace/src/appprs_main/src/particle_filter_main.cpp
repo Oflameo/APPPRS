@@ -118,9 +118,11 @@ int main(int argc,  char** argv)
             else if (logLine.at(0) == 'O') {
                 //std::cout << "ODOMETRY" << std::endl;
                 std::vector<float> odometry;
-                for (uint i = 0; i < logLineSplit.size(); i++) {
+                for (uint i = 1; i < logLineSplit.size(); i++) {
                     odometry.push_back(std::atof(logLineSplit.at(i).c_str()));
+                    std::cout << odometry.at(i-1) << " ";
                 }
+                std::cout << std::endl;
                 pf.odometry(odometry);
             }
             if (pf.getStepsUntilResample() == 0) {

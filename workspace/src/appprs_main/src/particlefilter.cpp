@@ -93,7 +93,7 @@ void ParticleFilter::odometry(std::vector<float> newOdometry) {
     if (lastOdometry.at(0) + lastOdometry.at(1) + lastOdometry.at(2) != 0.0) {
         std::vector<float> movement;
         for (int i = 0; i < 3; i++) {
-            movement.push_back((newOdometry.at(i) - lastOdometry.at(i))/MAP_RESOLUTION);
+            movement.push_back((newOdometry.at(i) - lastOdometry.at(i))/ODOMETRY_RESOLUTION);
         }
         for(int i = 0; i < particlesContainer.size(); i++) {
             movement.at(0) += (*movementNoise)(*generator);
