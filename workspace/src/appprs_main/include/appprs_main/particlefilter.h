@@ -34,6 +34,10 @@ class ParticleFilter {
         std::vector<float> lastOdometry;
         std::vector<boost::shared_ptr<single_particle>> particlesContainer;
         cv::Mat map_image;
+        //boost::shared_ptr<std::random_device> rd;
+        boost::shared_ptr<std::mt19937> generator;
+        boost::shared_ptr<std::normal_distribution<>> movementNoise;
+        boost::shared_ptr<std::normal_distribution<>> bearingNoise;
 };
 
 #endif // PARTICLEFILTER_H

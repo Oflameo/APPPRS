@@ -106,20 +106,28 @@ int main(int argc,  char** argv)
     if (robotLog.is_open()) {
         cout << "Opened log" << endl;
         while (getline(robotLog, logLine)) {
+
+            boost::trim(logLine);
+            std::vector<std::string> logLineSplit;
+            boost::split(logLineSplit,logLine,boost::is_any_of(" "),boost::token_compress_on);
+
             if (logLine.at(0) == 'L') {
-                std::cout << "LASER DATA" << std::endl;
+                //std::cout << "LASER DATA" << std::endl;
                 pf.laser();
             }
             else if (logLine.at(0) == 'O') {
-                std::cout << "ODOMETRY" << std::endl;
-                std::vector<float> crap;
-                pf.odometry(crap);
+                //std::cout << "ODOMETRY" << std::endl;
+                std::vector<float> odometry;
+                for (uint i = 0; i < logLineSplit.size(); i++) {
+                    odometry.push_back(std::atof(logLineSplit.at(i).c_str()));
+                }
+                pf.odometry(odometry);
             }
             if (pf.getStepsUntilResample() == 0) {
                 pf.resample();
             }
             updateVisualization(pf, cloud, output,nh);
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
         }
 
     }
@@ -211,7 +219,7 @@ void updateVisualization(ParticleFilter &pf,
         //     << "cloud.points.z = " << (cloud).points[i].z << std::endl;
 	}
 
-    std::cout << "put everything in a cloud" << std::endl;
+    //std::cout << "put everything in a cloud" << std::endl;
 
 	//Convert between point cloud types
 	pcl::toROSMsg(cloud, output);
@@ -226,7 +234,7 @@ void updateVisualization(ParticleFilter &pf,
 	//This just keeps the program and point cloud displayed. Once you are calling this from another function,
 	//It doesn't need to be in an eternal loop.
 
-    std::cout << "done converting to ROS cloud" << std::endl;
+    //std::cout << "done converting to ROS cloud" << std::endl;
 
     //while(nh.ok())
     //{

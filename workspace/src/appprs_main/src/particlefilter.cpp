@@ -40,6 +40,22 @@ ParticleFilter::ParticleFilter()
 
     initializeParticles();
     stepsUntilResample = STEPS_PER_RESAMPLE;
+    lastOdometry.resize(3);
+    lastOdometry.at(0) = 0;
+    lastOdometry.at(1) = 0;
+    lastOdometry.at(2) = 0;
+
+
+    std::random_device rd_temp;
+    std::mt19937 generator_temp(rd_temp());
+    std::normal_distribution<> movementNoise_temp(0,MOVEMENT_STD_DEV);
+    std::normal_distribution<> bearingNoise_temp(0,BEARING_STD_DEV);
+
+    //rd = boost::make_shared<std::random_device> (rd_temp);
+    generator = boost::make_shared<std::mt19937> (generator_temp);
+    movementNoise = boost::make_shared<std::normal_distribution<>> (movementNoise_temp);
+    bearingNoise = boost::make_shared<std::normal_distribution<>> (bearingNoise_temp);
+
 
 }
 
@@ -74,23 +90,30 @@ void ParticleFilter::initializeParticles() {
 
 
 void ParticleFilter::odometry(std::vector<float> newOdometry) {
-
-    for(int i = 0; i < particlesContainer.size(); i++) {
-
+    if (lastOdometry.at(0) + lastOdometry.at(1) + lastOdometry.at(2) != 0.0) {
+        std::vector<float> movement;
+        for (int i = 0; i < 3; i++) {
+            movement.push_back((newOdometry.at(i) - lastOdometry.at(i))/MAP_RESOLUTION);
+        }
+        for(int i = 0; i < particlesContainer.size(); i++) {
+            movement.at(0) += (*movementNoise)(*generator);
+            movement.at(1) += (*movementNoise)(*generator);
+            movement.at(2) += (*bearingNoise)(*generator);
+            particlesContainer.at(i)->move(movement);
+        }
     }
-
     lastOdometry.swap(newOdometry);
 }
 
 void ParticleFilter::laser() {
 
     stepsUntilResample--;
-    std::cout << "There are " << stepsUntilResample << " steps until resample" << std::endl;
+    //std::cout << "There are " << stepsUntilResample << " steps until resample" << std::endl;
 
 }
 
 void ParticleFilter::resample() {
-    std::cout << "Resampling..." << std::endl;
+    //std::cout << "Resampling..." << std::endl;
     stepsUntilResample = STEPS_PER_RESAMPLE;
 }
 

@@ -13,6 +13,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "tunable_parameters.h"
+#include <random>
 
 class single_particle {
 public:
@@ -44,7 +45,6 @@ public:
 
 private:
     uchar queryMapImage(float x, float y);
-
 
     float weight;
     std::vector<float> state;

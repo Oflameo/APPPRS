@@ -64,6 +64,8 @@ float single_particle::laserMeasurement(std::vector<float> laserRange) {
 }
 
 
-void single_particle::move(std::vector<float> odometry) {
-
+void single_particle::move(std::vector<float> movement) {
+    for (uint i = 0; i < 3; i++) {
+        state.at(i) += movement.at(i);
+    }
 }

@@ -7,5 +7,8 @@ const int MAP_SIZE = 800;
 const float MAP_RESOLUTION = 10.0;
 const float PI = 3.14159265359;
 
+const float MOVEMENT_STD_DEV = 0.005;
+const float BEARING_STD_DEV = 0.001;
+
 #endif // TUNABLE_PARAMETERS
 
