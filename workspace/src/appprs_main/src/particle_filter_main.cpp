@@ -80,7 +80,7 @@ int main(int argc,  char** argv)
 	(cloud).height = 1;
 	(cloud).points.resize ((cloud).width * (cloud).height);
 
-	std::string imageName("/home/jamie/workspace/ConvertToImage/src/wean_map_uint8.jpg"); // by default
+	std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
 	cv::Mat map_image=cv::imread(imageName,CV_LOAD_IMAGE_GRAYSCALE);
 
 	//Check that you got the image
