@@ -103,6 +103,7 @@ int main(int argc,  char** argv)
     // open robot log
     ifstream robotLog("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/log/robotdata1.log");
     string logLine;
+    //float maxLaserRangeFromLog = 0;
     if (robotLog.is_open()) {
         cout << "Opened log" << endl;
         while (getline(robotLog, logLine)) {
@@ -114,8 +115,15 @@ int main(int argc,  char** argv)
             if (logLine.at(0) == 'L') {
                 //std::cout << "LASER DATA" << std::endl;
                 std::vector<float> laserRanges;
+                std::vector<float> laserWRTMap;
                 for (uint i = 7; i < logLineSplit.size(); i++) {
                     laserRanges.push_back(std::atof(logLineSplit.at(i).c_str()));
+                    /*
+                    if (std::atof(logLineSplit.at(i).c_str()) > maxLaserRangeFromLog) {
+                        maxLaserRangeFromLog = std::atof(logLineSplit.at(i).c_str());
+                        std::cout << "max laser range from log = " << maxLaserRangeFromLog << std::endl;
+                    }
+                    */
                 }
                 pf.laser(laserRanges);
             }
@@ -124,16 +132,14 @@ int main(int argc,  char** argv)
                 std::vector<float> odometry;
                 for (uint i = 1; i < logLineSplit.size(); i++) {
                     odometry.push_back(std::atof(logLineSplit.at(i).c_str()));
-                    //std::cout << odometry.at(i-1) << " ";
                 }
-                //std::cout << std::endl;
                 pf.odometry(odometry);
             }
             if (pf.getStepsUntilResample() == 0) {
                 pf.resample();
             }
             updateVisualization(pf, cloud, output,nh);
-            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
         }
 
     }
@@ -142,6 +148,8 @@ int main(int argc,  char** argv)
     }
 
     robotLog.close();
+
+    //std::cout << "max laser range from log = " << maxLaserRangeFromLog << std::endl;
 
 
 

@@ -20,7 +20,7 @@ class ParticleFilter {
         ParticleFilter();
         ~ParticleFilter();
         void odometry(std::vector<float> newOdometry);
-        void laser(std::vector<float> laserRanges);
+        void laser(std::vector<float> laserRanges, std::vector<float> laserWRTMap);
         void resample();
         std::vector<boost::shared_ptr<single_particle>> getParticles();
         int getStepsUntilResample();
@@ -38,6 +38,7 @@ class ParticleFilter {
         boost::shared_ptr<std::mt19937> generator;
         boost::shared_ptr<std::normal_distribution<>> movementNoise;
         boost::shared_ptr<std::normal_distribution<>> bearingNoise;
+        std::vector<Eigen::MatrixXf> laserFrameRays; // always the same, so just build it once
 };
 
 #endif // PARTICLEFILTER_H

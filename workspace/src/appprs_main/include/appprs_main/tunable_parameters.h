@@ -12,8 +12,8 @@ const float PI = 3.14159265359;
 const float MOVEMENT_STD_DEV = 0.001;
 const float BEARING_STD_DEV = 0.0005;
 
-const float RANGE_MAX = 100.0;
-const int DENSITY_ALONG_RAY = 10;
+const float RANGE_MAX = 15.0;
+const int DENSITY_ALONG_RAY = 75;
 
 #endif // TUNABLE_PARAMETERS
 

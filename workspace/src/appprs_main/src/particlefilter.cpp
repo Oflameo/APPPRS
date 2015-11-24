@@ -38,6 +38,14 @@ ParticleFilter::ParticleFilter()
     robotMap.close();
     */
 
+    for (int i = 0; i < 180; i++) {
+        float thi = (float)i;
+        Eigen::MatrixXf laserFrameRay = Eigen::MatrixXf::Ones(3,DENSITY_ALONG_RAY);
+        laserFrameRay.row(0) = Eigen::VectorXf::LinSpaced(DENSITY_ALONG_RAY,0.0,RANGE_MAX*cos(thi));
+        laserFrameRay.row(1) = Eigen::VectorXf::LinSpaced(DENSITY_ALONG_RAY,0.0,RANGE_MAX*sin(thi));
+        laserFrameRays.push_back(laserFrameRay);
+    }
+
     initializeParticles();
     stepsUntilResample = STEPS_PER_RESAMPLE;
     lastOdometry.resize(3);
@@ -54,8 +62,6 @@ ParticleFilter::ParticleFilter()
     generator = boost::make_shared<std::mt19937> (generator_temp);
     movementNoise = boost::make_shared<std::normal_distribution<>> (movementNoise_temp);
     bearingNoise = boost::make_shared<std::normal_distribution<>> (bearingNoise_temp);
-
-
 }
 
 ParticleFilter::~ParticleFilter()
@@ -79,7 +85,8 @@ void ParticleFilter::initializeParticles() {
             particle.setX(xIdx/MAP_RESOLUTION);
             particle.setY(yIdx/MAP_RESOLUTION);
             particle.setTh(th(generator));
-            particle.setMapImage(map_image);
+            particle.setMapImage(map_image);            
+            particle.setLaserRays(laserFrameRays);
             auto p = boost::make_shared<single_particle> (particle);
             particlesContainer.push_back(p);
         }
