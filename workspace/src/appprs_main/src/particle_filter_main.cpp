@@ -52,8 +52,7 @@ void temp_initialize_points(pcl::PointCloud<pcl::PointXYZ> &cloud,
 
 void updateVisualization(ParticleFilter &pf,
 		pcl::PointCloud<pcl::PointXYZ> &cloud,
-		sensor_msgs::PointCloud2 &output,
-		std::vector<boost::shared_ptr<single_particle>> &temp_ptr_container,
+        sensor_msgs::PointCloud2 &output,
 		ros::NodeHandle nh);
 
 
@@ -65,7 +64,7 @@ int main(int argc,  char** argv)
 
 	pub = nh.advertise<sensor_msgs::PointCloud2> ("output", 1);
 
-	std::vector<boost::shared_ptr<single_particle>> temp_ptr_container;
+    //std::vector<boost::shared_ptr<single_particle>> temp_ptr_container;
 
 	//Create your Point Clouds Containers. One for minipulation, one for export #TPP
 	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
@@ -80,7 +79,8 @@ int main(int argc,  char** argv)
 	(cloud).height = 1;
 	(cloud).points.resize ((cloud).width * (cloud).height);
 
-	std::string imageName("/home/jamie/workspace/ConvertToImage/src/wean_map_uint8.jpg"); // by default
+    //std::string imageName("/home/jamie/workspace/ConvertToImage/src/wean_map_uint8.jpg"); // by default
+    std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
 	cv::Mat map_image=cv::imread(imageName,CV_LOAD_IMAGE_GRAYSCALE);
 
 	//Check that you got the image
@@ -90,9 +90,15 @@ int main(int argc,  char** argv)
 	}
 
 
-	temp_initialize_points(cloud, map_image ,temp_ptr_container, output);
+    //temp_initialize_points(cloud, map_image ,temp_ptr_container, output);
 
-	updateVisualization(pf, cloud, output,temp_ptr_container,nh);
+    /*
+    cv::namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
+    cv::imshow( "Display window", map_image );
+    cv::waitKey(0);
+    */
+
+    updateVisualization(pf, cloud, output,nh);
 
 
 
@@ -100,7 +106,7 @@ int main(int argc,  char** argv)
 	return 0;
 }
 
-
+/*
 void temp_initialize_points(pcl::PointCloud<pcl::PointXYZ> &cloud,
 		cv::Mat image,
 		std::vector<boost::shared_ptr<single_particle>> &ptr_container,
@@ -153,21 +159,27 @@ void temp_initialize_points(pcl::PointCloud<pcl::PointXYZ> &cloud,
 	}
 	cout<<"ptr_container has:"<< (ptr_container).size()<< "items in it"<<endl;
 }
+*/
 
 void updateVisualization(ParticleFilter &pf,
 		pcl::PointCloud<pcl::PointXYZ> &cloud,
 		sensor_msgs::PointCloud2 &output,
-		std::vector<boost::shared_ptr<single_particle>> &temp_ptr_container,
 		ros::NodeHandle nh
 )
 {
 
+    //auto temp_ptr_container = pf.getParticles();
 
 	for (int i=0; i<pf.getNumberOfParticles(); i++)
 	{
-		(cloud).points[i].x = (*temp_ptr_container.at(i)).getX();
-		(cloud).points[i].y = (*temp_ptr_container.at(i)).getY();
+        //(cloud).points[i].x = (*temp_ptr_container.at(i)).getX();
+        //(cloud).points[i].y = (*temp_ptr_container.at(i)).getY();
+        (cloud).points[i].x = pf.getParticles().at(i)->getX();
+        (cloud).points[i].y = pf.getParticles().at(i)->getY();
 		(cloud).points[i].z = 0;
+        //std::cout << "cloud.points.x = " << (cloud).points[i].x << " "
+        //     << "cloud.points.y = " << (cloud).points[i].y << " "
+        //     << "cloud.points.z = " << (cloud).points[i].z << std::endl;
 	}
 	//Convert between point cloud types
 	pcl::toROSMsg(cloud, output);

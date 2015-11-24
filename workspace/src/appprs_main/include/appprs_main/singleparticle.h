@@ -10,44 +10,35 @@
 
 #include <vector>
 #include "Eigen/Dense"
+#include <iostream>
 
 class single_particle {
 public:
-	//Default Constructor
-	single_particle();
-	//Default Destructor
-	virtual ~single_particle();
+    //Default Constructor
+    single_particle();
+    //Default Destructor
+    virtual ~single_particle();
 
-	//Overload Constructor
-	single_particle(float x, float y, float th);
+    //Overload Constructor
+    single_particle(std::vector<float> initialState);
 
-	//Accessor Functions
-	float getX() const;
-	float getY() const;
-	float getTh() const;
-	float getWeight() const;
+    //Accessor Functions
+    float getX() const;
+    float getY() const;
+    float getTh() const;
+    float getWeight() const;
+    std::vector<float> getState();
 
-	//Mutator Functions
-	void setX(float);
-	void setY(float);
-	void setTh(float);
-	void setPosition(float var_x, float var_y, float var_Th);
-	void setWeight(float var_weight);
+    //Mutator Functions
 
-	//Output Functions
-	float evaluateLidar(float lidar[180]);
-	void evaluateOdometry(float dx, float dy, float dtheta, float dtime);
-
-
+    //Output Functions
+    float laserMeasurement(std::vector<float> laserRange);
+    void move(std::vector<float> odometry);
 
 
 private:
-	float x;
-	float y;
-	float theta;
-	float weight;
-	float x_laz;
-	float y_laz;
+    float weight;
+    std::vector<float> state;
 
 };
 
