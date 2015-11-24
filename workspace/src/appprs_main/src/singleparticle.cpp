@@ -88,7 +88,7 @@ Eigen::MatrixXd single_particle::create2DHomogeneousTransform(std::vector<float>
 
 std::vector<float> single_particle::laserCast() {
     // return 180 doubles that indicate the range at which a wall is predicted
-    std::vector<double> result;
+    std::vector<float> result;
     result.resize(180);
     for (uint i = 0; i < result.size(); i++) {
         float thi = (float)i;
@@ -96,4 +96,5 @@ std::vector<float> single_particle::laserCast() {
         laserFrameRay.row(0) = Eigen::VectorXd::LinSpaced(DENSITY_ALONG_RAY,0.0,RANGE_MAX*cos(thi));
         laserFrameRay.row(1) = Eigen::VectorXd::LinSpaced(DENSITY_ALONG_RAY,0.0,RANGE_MAX*sin(thi));
     }
+    return result;
 }
