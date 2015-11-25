@@ -55,10 +55,11 @@ void single_particle::setMapImage(cv::Mat &map_image_in) {
 uchar single_particle::queryMapImage(float x, float y) {
     //std::cout << "x = " << round(MAP_SIZE-1-y*MAP_RESOLUTION) << "   y = " << round(x*MAP_RESOLUTION) << std::endl;
     if (round(MAP_SIZE-1-y*MAP_RESOLUTION) < 0 ||
-        round(MAP_SIZE-1-y*MAP_RESOLUTION) > 799 ||
+        round(MAP_SIZE-1-y*MAP_RESOLUTION) > MAP_SIZE-1 ||
         round(x*MAP_RESOLUTION) < 0 ||
-        round(x*MAP_RESOLUTION) > 799)
+        round(x*MAP_RESOLUTION) > MAP_SIZE-1)
     {
+        std::cout << "queried outside of map, returning zero" << std::endl;
         return 0;
     }
     return map_image.at<uchar>(round(MAP_SIZE-1-y*MAP_RESOLUTION),round(x*MAP_RESOLUTION));
@@ -70,13 +71,28 @@ void single_particle::laserMeasurement(std::vector<float> laserRanges, std::vect
     std::vector<float> results;
     results.resize(180);
     float rangeErrorSum = 0;
+
+    float state_x = state.at(0);
+    float state_y = state.at(1);
+    float state_th = state.at(2);
+
     for (int i = 0; i < 180; i++) {
         float thi = i*PI/180.0;
-        for (float a = 0; a < RANGE_MAX; a += 1/MAP_RESOLUTION) {
-            float x = laserWRTMap.at(0) + a*cos(thi + laserWRTMap.at(2));
-            float y = laserWRTMap.at(1) + a*sin(thi + laserWRTMap.at(2));
-            if (queryMapImage(x,y) < 250) {
-                float result = pow(a - laserRanges.at(i),2);
+        for (int j = 0; j < DENSITY_ALONG_RAY; j++) {
+            float a = j*RANGE_MAX/DENSITY_ALONG_RAY;
+            //float x = state_x + 0.25*cos(state_th) + a*cos(thi + state_th);
+            //float y = state_y + 0.25*sin(state_th) + a*sin(thi + state_th);
+            float x = state_x;
+            float y = state_y;
+
+            int mapValue = queryMapImage(x,y);
+            //std::cout << "j = " << j << " a = " << a << " map at (" << x << "," << y << ") = " << mapValue << std::endl;
+
+            //std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+            if (mapValue < 250) {
+                //std::cout << "thi = " << thi << " measurement range = " << laserRanges.at(i)/ODOMETRY_RESOLUTION << "   predicted range = " << a << std::endl;
+                float result = pow(a - laserRanges.at(i)/ODOMETRY_RESOLUTION,2);
                 results.at(i) = result;
                 rangeErrorSum += result;
                 break;
@@ -84,6 +100,7 @@ void single_particle::laserMeasurement(std::vector<float> laserRanges, std::vect
         }
     }
     weight *= exp(-1*rangeErrorSum/LASER_UNCERTAINTY_SCALAR);
+    std::cout<< "weight = " << weight << " *******************************************************" << std::endl;
 }
 
 void single_particle::weightCrush() {

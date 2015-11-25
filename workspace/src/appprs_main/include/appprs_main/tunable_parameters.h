@@ -13,7 +13,7 @@ const float MOVEMENT_STD_DEV = 0.001;
 const float BEARING_STD_DEV = 0.0005;
 
 const float RANGE_MAX = 15.0;
-const int DENSITY_ALONG_RAY = 75;
+const int DENSITY_ALONG_RAY = 150;
 
 const float LASER_UNCERTAINTY_SCALAR = 1.0;
 

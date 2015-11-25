@@ -16,6 +16,7 @@
 #include <random>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <thread>
 
 class single_particle {
 public:
