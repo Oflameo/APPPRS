@@ -82,12 +82,11 @@ void single_particle::laserMeasurement(std::vector<float> laserRanges, std::vect
 #pragma omp parallel for schedule(static,1) num_threads(8)
     for (int i = 0; i < 180; i++) {
         float thi = i*PI/180.0;
+        float laserRange = laserRanges.at(i);
         for (int j = 0; j < DENSITY_ALONG_RAY; j++) {
             float a = j*RANGE_MAX/DENSITY_ALONG_RAY;
             float x = state_x + 0.25*cos(state_th) + a*cos(thi + state_th);
             float y = state_y + 0.25*sin(state_th) + a*sin(thi + state_th);
-            //float x = state_x;
-            //float y = state_y;
 
             int mapValue = queryMapImage(x,y);
             //std::cout << "j = " << j << " a = " << a << " map at (" << x << "," << y << ") = " << mapValue << std::endl;
@@ -96,15 +95,16 @@ void single_particle::laserMeasurement(std::vector<float> laserRanges, std::vect
 
             if (mapValue < 250) {
                 //std::cout << "thi = " << thi << " measurement range = " << laserRanges.at(i)/ODOMETRY_RESOLUTION << "   predicted range = " << a << std::endl;
-                float result = pow(a - laserRanges.at(i)/ODOMETRY_RESOLUTION,2);
+                float result = pow(a - laserRange/ODOMETRY_RESOLUTION,2);
                 results.at(i) = result;
                 rangeErrorSum += result;
                 break;
             }
         }
     }
+    //std::cout << "\nparticle id " << id << " weight before laser udpate = " << weight;
     weight *= exp(-1*rangeErrorSum/LASER_UNCERTAINTY_SCALAR);
-  // std::cout<< "weight = " << weight << " *******************************************************" << std::endl;
+    //std::cout << "\nparticle id " << id << " weight after laser udpate = " << weight << std::endl;
 }
 
 void single_particle::weightCrush() {
@@ -114,10 +114,10 @@ void single_particle::weightCrush() {
         state.at(1) < 0 ||
         state.at(1) > MAP_SIZE/MAP_RESOLUTION)
     {
-        weight = 0.001;
+        //weight *= 0.001;
     }
     if (queryMapImage(state.at(0),state.at(1)) < 200) {
-        weight = 0.001;
+        //weight *= 0.001;
     }
 }
 

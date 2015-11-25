@@ -122,7 +122,12 @@ void ParticleFilter::laser(std::vector<float> laserRanges, std::vector<float> la
     stepsUntilResample--;    
     std::cout << "There are " << stepsUntilResample << " steps until resample" << std::endl;
     for(int i = 0; i < particlesContainer.size(); i++) {
-        particlesContainer.at(i)->laserMeasurement(laserRanges, laserWRTMap);
+        if (particlesContainer.at(i)->getWeight() > 0.05) {
+            particlesContainer.at(i)->laserMeasurement(laserRanges, laserWRTMap);
+        }
+        else {
+            particlesContainer.at(i)->setWeight(particlesContainer.at(i)->getWeight()*0.001);
+        }
     }
 
 }
@@ -135,73 +140,85 @@ void ParticleFilter::resample() {
 
     std::cout << "Done normalizing weights..." << std::endl;
 
-    //float resampling_base = (rand()%10001)/10000.0*1.0/M;
-
     float resampling_base = (*resamplingBaseDistribution)(*generator)*1.0/M;
-    float current_importance = resampling_base;
+    float sampling_arrow = resampling_base;
     int current_particle = 0;
     std::vector<boost::shared_ptr<single_particle>> temp_particlesContainer;
-    //if (current_particle > particlesContainer.size())
-    //{
-    //    std::cout<<"your countins is off. Current_particle is above size of array"<<std::endl;
-    //}
 
     float importance_sum = particlesContainer.at(current_particle)->getWeight();
 
-    for(int i=0; i < (int)M ; i++)
+    //for(int i=0; i < (int)M ; i++)
+    int i = 0;
+    while (temp_particlesContainer.size() < int(M))
     {
-        /*
-        float U = resampling_base+(i)*1/M;
-        while (U > importance_sum)
-    	{
-    		current_particle++;
-    		importance_sum+=particlesContainer.at(i)->getWeight();
-    	}
-    	temp_particlesContainer.push_back(particlesContainer.at(current_particle));
-        */
+        i++;
+        //std::cout << "\n i = " << i << "\n right edge of current particle = " << importance_sum
+        //          << "\n sampling arrow = " << sampling_arrow;
 
-        std::cout << "\n i = " << i << "\n right edge of current particle = " << importance_sum
-                  << "\n sampling arrow = " << current_importance;
+        if (i > 2*M) {
+            std::cout << "\n SOMETHING TOTALLY MESSED UP - ALL PARTICLES OUTSIDE OF VIABLE MAP" << std::endl;
+            throw 0;
+        }
 
 
-        if (current_importance < importance_sum) {
-            temp_particlesContainer.push_back(particlesContainer.at(current_particle));
-            std::cout << "\n sampling arrow is inside a particle --> sample retains particle " << current_particle;
-            std::cout << "\n we have retained " << temp_particlesContainer.size() << " particles so far";
+        if (sampling_arrow < importance_sum) {
+
+            //temp_particlesContainer.push_back(particlesContainer.at(current_particle));
+            single_particle particle;
+            particle.setX(particlesContainer.at(current_particle)->getX());
+            particle.setY(particlesContainer.at(current_particle)->getY());
+            particle.setTh(particlesContainer.at(current_particle)->getTh());
+            particle.setMapImage(map_image);
+            particle.setId(particlesContainer.at(current_particle)->getId());
+            auto p = boost::make_shared<single_particle> (particle);
+            temp_particlesContainer.push_back(p);
+
+            //std::cout << "\n sampling arrow is inside a particle --> sample retains particle id " << particlesContainer.at(current_particle)->getId();
+            //std::cout << "\n we have retained " << temp_particlesContainer.size() << " particles so far";
             if (temp_particlesContainer.size() == (int)M) {
-                std::cout << std::endl;
+                //std::cout << std::endl;
                 break;
             }
         }
 
-        current_importance += 1/M;
+        sampling_arrow += 1/M;
+        //std::cout << "\n new sampling arrow = " << sampling_arrow;
 
-        while (current_importance > importance_sum) {
+        while (sampling_arrow > importance_sum) {
             if (current_particle < particlesContainer.size()-1) {
                 current_particle++;
+                //std::cout << "\n sampling arrow has moved past current particle --> incrementing current_particle";
+            }
+            else {
+                //std::cout << "\n already reached end of particles, just sample the last one until the vector is full";
+                importance_sum = 999;
+                break;
             }
             importance_sum += particlesContainer.at(current_particle)->getWeight();
-            std::cout << "\n sampling arrow has moved past current particle --> incrementing current_particle";
-            std::cout << "\n new importance sum = " << importance_sum;
+            //std::cout << "\n new importance sum = " << importance_sum;
         }
-        std::cout << std::endl;
+        //std::cout << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     //std::cout<<"temp container has "<<temp_particlesContainer.size()<<"  orig has "<< particlesContainer.size()<<std::endl;
 
+    /*
     std::cout << "\n BEFORE particle container swap:" << std::endl;
     std::cout << "IDs:" << std::endl;
     for (int i = 0; i < particlesContainer.size(); i++) {
         std::cout << "original = " << particlesContainer.at(i)->getId() << "   resampled = " << temp_particlesContainer.at(i)->getId() << std::endl;
     }
+    */
 
     particlesContainer.swap(temp_particlesContainer);
 
+    /*
     std::cout << "\n AFTER particle container swap:" << std::endl;
     std::cout << "IDs:" << std::endl;
     for (int i = 0; i < particlesContainer.size(); i++) {
         std::cout << "original = " << particlesContainer.at(i)->getId() << "   resampled = " << temp_particlesContainer.at(i)->getId() << std::endl;
     }
+    */
 
     resetParticleWeights();
 }
@@ -215,7 +232,10 @@ void ParticleFilter::normalizeParticleWeights() {
 	for(int i=0; i < particlesContainer.size(); i++)
 	{
         totalWeight += particlesContainer.at(i)->getWeight();
+        //std::cout << "\n particle id " << particlesContainer.at(i)->getId() << " has weight = " << particlesContainer.at(i)->getWeight()
+        //          << "  --->  total weight now = " << totalWeight;
 	}
+    //std::cout << std::endl;
     std::cout << "total particle weight BEFORE = " << totalWeight << std::endl;
     //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
@@ -236,13 +256,16 @@ void ParticleFilter::normalizeParticleWeights() {
     for(int i=0; i < particlesContainer.size(); i++)
     {
         totalWeight += particlesContainer.at(i)->getWeight();
+        //std::cout << "\n particle id " << particlesContainer.at(i)->getId() << " has weight = " << particlesContainer.at(i)->getWeight()
+        //          << "  --->  total weight now = " << totalWeight;
     }
+    //std::cout << std::endl;
     std::cout << "total particle weight AFTER = " << totalWeight << std::endl;
     //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 }
 void ParticleFilter::resetParticleWeights() {
-    std::cout << "Setting weights to 1..." << std::endl;
+    //std::cout << "Setting weights to 1..." << std::endl;
 
     for (int i=0; i<particlesContainer.size(); i++) {
         particlesContainer.at(i)->setWeight(1.0);

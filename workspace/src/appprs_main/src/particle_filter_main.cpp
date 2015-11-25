@@ -155,6 +155,7 @@ int main(int argc,  char** argv)
 
     //std::cout << "max laser range from log = " << maxLaserRangeFromLog << std::endl;
 
+    std::cout << " ********** FINISHED ***********" << std::endl;
 
 
 
@@ -231,7 +232,7 @@ void updateVisualization(ParticleFilter &pf,
 	{
         (cloud).points[i].x = p.at(i)->getX();
         (cloud).points[i].y = p.at(i)->getY();
-        (cloud).points[i].z = p.at(i)->getWeight()*20;
+        (cloud).points[i].z = p.at(i)->getWeight()*5;
         //std::cout << "cloud.points.x = " << (cloud).points[i].x << " "
         //     << "cloud.points.y = " << (cloud).points[i].y << " "
         //     << "cloud.points.z = " << (cloud).points[i].z << std::endl;
