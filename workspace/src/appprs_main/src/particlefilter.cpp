@@ -3,8 +3,8 @@
 ParticleFilter::ParticleFilter()
 {
 
-    std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp");
-    //std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
+    //std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp");
+    std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
     map_image=cv::imread(imageName,CV_LOAD_IMAGE_GRAYSCALE);
 
     //Check that you got the image
@@ -59,10 +59,12 @@ ParticleFilter::ParticleFilter()
     std::mt19937 generator_temp(rd_temp());
     std::normal_distribution<> movementNoise_temp(0,MOVEMENT_STD_DEV);
     std::normal_distribution<> bearingNoise_temp(0,BEARING_STD_DEV);
+    std::uniform_real_distribution<> resamplingBaseDistribution_temp(0.0,1.0);
 
     generator = boost::make_shared<std::mt19937> (generator_temp);
     movementNoise = boost::make_shared<std::normal_distribution<>> (movementNoise_temp);
     bearingNoise = boost::make_shared<std::normal_distribution<>> (bearingNoise_temp);
+    resamplingBaseDistribution = boost::make_shared<std::uniform_real_distribution<>> (resamplingBaseDistribution_temp);
 }
 
 ParticleFilter::~ParticleFilter()
@@ -115,7 +117,7 @@ void ParticleFilter::odometry(std::vector<float> newOdometry) {
 void ParticleFilter::laser(std::vector<float> laserRanges, std::vector<float> laserWRTMap) {
 
     stepsUntilResample--;    
-    //std::cout << "There are " << stepsUntilResample << " steps until resample" << std::endl;
+    std::cout << "There are " << stepsUntilResample << " steps until resample" << std::endl;
     for(int i = 0; i < particlesContainer.size(); i++) {
         particlesContainer.at(i)->laserMeasurement(laserRanges, laserWRTMap);
     }
@@ -125,36 +127,60 @@ void ParticleFilter::laser(std::vector<float> laserRanges, std::vector<float> la
 void ParticleFilter::resample() {
     std::cout << "Resampling..." << std::endl;
     stepsUntilResample = STEPS_PER_RESAMPLE;
-    float M=particlesContainer.size();
-    normalizeParticleWeights();
-    std::cout << "Done normalizing Weights..." << std::endl;
+    float M = particlesContainer.size();
+    normalizeParticleWeights();   
 
-    //std::uniform_real_distribution<double> resampling_base_distribution(0.,1.);
-  //  seed_clock::duration duration = myClock.now() - beginning;
-//    unsigned int seed_input = int(time(NULL));
-   // (*generator);
-    //   generator.seed(seed_input);
-    float resampling_base = (rand()%10001)/10000.0*1.0/M;
+    std::cout << "Done normalizing weights..." << std::endl;
+
+    //float resampling_base = (rand()%10001)/10000.0*1.0/M;
+
+    float resampling_base = (*resamplingBaseDistribution)(*generator)*1.0/M;
     float current_importance = resampling_base;
     int current_particle = 0;
     std::vector<boost::shared_ptr<single_particle>> temp_particlesContainer;
-    if (current_particle>particlesContainer.size())
-    {
-std::cout<<"your countins is off. Current_particle is above size of array"<<std::endl;
-    }
+    //if (current_particle > particlesContainer.size())
+    //{
+    //    std::cout<<"your countins is off. Current_particle is above size of array"<<std::endl;
+    //}
 
-    float importance_sum=particlesContainer.at(current_particle)->getWeight();
-    for(int i=0; i<(M);i++)
+    float importance_sum = particlesContainer.at(current_particle)->getWeight();
+
+    for(int i=0; i < (int)M ; i++)
     {
-    	float U=resampling_base+(i)*1/M;
-    	while (U>importance_sum)
+        /*
+        float U = resampling_base+(i)*1/M;
+        while (U > importance_sum)
     	{
     		current_particle++;
     		importance_sum+=particlesContainer.at(i)->getWeight();
     	}
     	temp_particlesContainer.push_back(particlesContainer.at(current_particle));
+        */
+
+        std::cout << "\n i = " << i << "\n right edge of current particle = " << importance_sum
+                  << "\n sampling arrow = " << current_importance;
+
+
+        if (current_importance < importance_sum) {
+            temp_particlesContainer.push_back(particlesContainer.at(current_particle));
+            std::cout << "\n sampling arrow is inside a particle --> sample retains particle " << current_particle;
+            std::cout << "\n we have retained " << temp_particlesContainer.size() << " particles so far";
+            if (temp_particlesContainer.size() == (int)M) {
+                std::cout << std::endl;
+                break;
+            }
+        }
+        current_importance += 1/M;
+        while (current_importance > importance_sum) {
+            current_particle++;
+            importance_sum += particlesContainer.at(current_particle)->getWeight();
+            std::cout << "\n sampling arrow has moved past current particle --> incrementing current_particle";
+            std::cout << "\n new importance sum = " << importance_sum;
+        }
+        std::cout << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    std::cout<<"temp container has "<<temp_particlesContainer.size()<<"orig has "<< particlesContainer.size()<<std::endl;
+    std::cout<<"temp container has "<<temp_particlesContainer.size()<<"  orig has "<< particlesContainer.size()<<std::endl;
 
     particlesContainer.swap(temp_particlesContainer);
 
@@ -162,32 +188,46 @@ std::cout<<"your countins is off. Current_particle is above size of array"<<std:
 }
 
 void ParticleFilter::normalizeParticleWeights() {
-    std::cout << "Normalizing weights..." << std::endl;
+    //std::cout << "Normalizing weights..." << std::endl;
 
-	float total_importance=0;
-	int M=particlesContainer.size();
-	std::cout<<"M has:"<<M<<" particles"<<std::endl;
+    float totalWeight = 0;
+    float M = particlesContainer.size();
+    //std::cout << "M has:" << M << " particles" << std::endl;
 	for(int i=0; i < particlesContainer.size(); i++)
 	{
-		total_importance+=particlesContainer.at(i)->getWeight();
+        totalWeight += particlesContainer.at(i)->getWeight();
 	}
+    std::cout << "total particle weight BEFORE = " << totalWeight << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 	float new_weight;
 	for(int i=0; i < particlesContainer.size(); i++)
-		{
-		new_weight=(particlesContainer.at(i)->getWeight())*1/total_importance;
-		particlesContainer.at(i)->setWeight(new_weight);
-  std::cout<< "weight = " << new_weight << " *******************************************************" << std::endl;
-  //std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    {
+        new_weight = (particlesContainer.at(i)->getWeight())/totalWeight;
 
-		}
+        //std::cout << "\n old weight = " << particlesContainer.at(i)->getWeight();
+        //std::cout << "\n new weight = " << new_weight << std::endl;
+
+		particlesContainer.at(i)->setWeight(new_weight);        
+        //std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+    }
+
+    totalWeight = 0;
+    for(int i=0; i < particlesContainer.size(); i++)
+    {
+        totalWeight += particlesContainer.at(i)->getWeight();
+    }
+    std::cout << "total particle weight AFTER = " << totalWeight << std::endl;
+    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 }
 void ParticleFilter::resetParticleWeights() {
     std::cout << "Setting weights to 1..." << std::endl;
 
-for(int i=0; i<particlesContainer.size(); i++)
-	particlesContainer.at(i)->setWeight(1);
+    for (int i=0; i<particlesContainer.size(); i++) {
+        particlesContainer.at(i)->setWeight(1.0);
+    }
 }
 
 std::vector<boost::shared_ptr<single_particle> > ParticleFilter::getParticles() {

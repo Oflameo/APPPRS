@@ -41,6 +41,7 @@ class ParticleFilter {
         boost::shared_ptr<std::mt19937> generator;
         boost::shared_ptr<std::normal_distribution<>> movementNoise;
         boost::shared_ptr<std::normal_distribution<>> bearingNoise;
+        boost::shared_ptr<std::uniform_real_distribution<>> resamplingBaseDistribution;
         std::vector<Eigen::MatrixXf> laserFrameRays; // always the same, so just build it once
 };
 

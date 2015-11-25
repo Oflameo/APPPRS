@@ -62,7 +62,7 @@ uchar single_particle::queryMapImage(float x, float y) {
         round(x*MAP_RESOLUTION) < 0 ||
         round(x*MAP_RESOLUTION) > MAP_SIZE-1)
     {
-        std::cout << "queried outside of map, returning zero" << std::endl;
+        //std::cout << "queried outside of map, returning zero" << std::endl;
         return 0;
     }
     return map_image.at<uchar>(round(MAP_SIZE-1-y*MAP_RESOLUTION),round(x*MAP_RESOLUTION));

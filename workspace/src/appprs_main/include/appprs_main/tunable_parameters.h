@@ -2,7 +2,7 @@
 #define TUNABLE_PARAMETERS
 
 const int STEPS_PER_RESAMPLE = 10;
-const int NUMBER_OF_PARTICLES = 1000;
+const int NUMBER_OF_PARTICLES = 100;
 const int MAP_SIZE = 800;
 
 const float MAP_RESOLUTION = 10.0;
