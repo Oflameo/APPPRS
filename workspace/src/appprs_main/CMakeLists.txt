@@ -21,7 +21,13 @@ find_package(catkin REQUIRED COMPONENTS
 find_package( OpenCV REQUIRED )
 find_package( Boost REQUIRED )
 
+option(WITH_OPENMP  "Build with OpenMP support for multithreading"    ON)
 
+
+
+
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 #add_service_files(
 #   FILES
@@ -73,7 +79,7 @@ include_directories(
    
  )
 target_link_libraries(
-appprs_main  ${OpenCV_LIBRARIES} ${catkin_LIBRARIES}
+appprs_main  ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${boost_LIBRARIES}
 )
 
 add_executable(particle_filter_main src/particle_filter_main.cpp)
@@ -82,6 +88,7 @@ ${OpenCV_LIBRARIES}
 ${catkin_LIBRARIES}
 ${PCL_COMMON_LIBRARIES}
 ${PCL_IO_LIBRARIES}
+${boost_LIBRARIES}
 appprs_main)
 add_dependencies(particle_filter_main appprs_main_generate_gencpp)
 

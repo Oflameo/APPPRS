@@ -3,8 +3,8 @@
 ParticleFilter::ParticleFilter()
 {
 
-    //std::string imageName("/home/jamie/workspace/ConvertToImage/src/wean_map_uint8.jpg"); // by default
-    std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
+    std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp");
+    //std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
     map_image=cv::imread(imageName,CV_LOAD_IMAGE_GRAYSCALE);
 
     //Check that you got the image
@@ -123,12 +123,71 @@ void ParticleFilter::laser(std::vector<float> laserRanges, std::vector<float> la
 }
 
 void ParticleFilter::resample() {
-    //std::cout << "Resampling..." << std::endl;
+    std::cout << "Resampling..." << std::endl;
     stepsUntilResample = STEPS_PER_RESAMPLE;
+    float M=particlesContainer.size();
+    normalizeParticleWeights();
+    std::cout << "Done normalizing Weights..." << std::endl;
+
+    //std::uniform_real_distribution<double> resampling_base_distribution(0.,1.);
+  //  seed_clock::duration duration = myClock.now() - beginning;
+//    unsigned int seed_input = int(time(NULL));
+   // (*generator);
+    //   generator.seed(seed_input);
+    float resampling_base = (rand()%10001)/10000.0*1.0/M;
+    float current_importance = resampling_base;
+    int current_particle = 0;
+    std::vector<boost::shared_ptr<single_particle>> temp_particlesContainer;
+    if (current_particle>particlesContainer.size())
+    {
+std::cout<<"your countins is off. Current_particle is above size of array"<<std::endl;
+    }
+
+    float importance_sum=particlesContainer.at(current_particle)->getWeight();
+    for(int i=0; i<(M);i++)
+    {
+    	float U=resampling_base+(i)*1/M;
+    	while (U>importance_sum)
+    	{
+    		current_particle++;
+    		importance_sum+=particlesContainer.at(i)->getWeight();
+    	}
+    	temp_particlesContainer.push_back(particlesContainer.at(current_particle));
+    }
+    std::cout<<"temp container has "<<temp_particlesContainer.size()<<"orig has "<< particlesContainer.size()<<std::endl;
+
+    particlesContainer.swap(temp_particlesContainer);
+
+    resetParticleWeights();
 }
 
 void ParticleFilter::normalizeParticleWeights() {
+    std::cout << "Normalizing weights..." << std::endl;
 
+	float total_importance=0;
+	int M=particlesContainer.size();
+	std::cout<<"M has:"<<M<<" particles"<<std::endl;
+	for(int i=0; i < particlesContainer.size(); i++)
+	{
+		total_importance+=particlesContainer.at(i)->getWeight();
+	}
+
+	float new_weight;
+	for(int i=0; i < particlesContainer.size(); i++)
+		{
+		new_weight=(particlesContainer.at(i)->getWeight())*1/total_importance;
+		particlesContainer.at(i)->setWeight(new_weight);
+  std::cout<< "weight = " << new_weight << " *******************************************************" << std::endl;
+  //std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+		}
+
+}
+void ParticleFilter::resetParticleWeights() {
+    std::cout << "Setting weights to 1..." << std::endl;
+
+for(int i=0; i<particlesContainer.size(); i++)
+	particlesContainer.at(i)->setWeight(1);
 }
 
 std::vector<boost::shared_ptr<single_particle> > ParticleFilter::getParticles() {
@@ -142,3 +201,5 @@ int ParticleFilter::getStepsUntilResample() {
 int ParticleFilter::getNumberOfParticles() {
     return NUMBER_OF_PARTICLES;
 }
+
+

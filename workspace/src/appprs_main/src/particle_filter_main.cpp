@@ -79,8 +79,8 @@ int main(int argc,  char** argv)
 	(cloud).height = 1;
 	(cloud).points.resize ((cloud).width * (cloud).height);
 
-    //std::string imageName("/home/jamie/workspace/ConvertToImage/src/wean_map_uint8.jpg"); // by default
-    std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
+    std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
+    //std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
 	cv::Mat map_image=cv::imread(imageName,CV_LOAD_IMAGE_GRAYSCALE);
 
 	//Check that you got the image
@@ -101,7 +101,8 @@ int main(int argc,  char** argv)
     std::cout << "about to visualize" << std::endl;
 
     // open robot log
-    ifstream robotLog("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/log/robotdata1.log");
+   // ifstream robotLog("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/log/robotdata1.log");
+    ifstream robotLog("/home/jamie/Desktop/hw4_robostats/robotdata1.log");
     string logLine;
     //float maxLaserRangeFromLog = 0;
     if (robotLog.is_open()) {
@@ -139,7 +140,7 @@ int main(int argc,  char** argv)
                 pf.odometry(odometry);
             }
             if (pf.getStepsUntilResample() == 0) {
-                pf.resample();
+             //   pf.resample();
             }
             updateVisualization(pf, cloud, output,nh);
             //std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -230,7 +231,7 @@ void updateVisualization(ParticleFilter &pf,
 	{
         (cloud).points[i].x = p.at(i)->getX();
         (cloud).points[i].y = p.at(i)->getY();
-        (cloud).points[i].z = p.at(i)->getWeight()-.5;
+        (cloud).points[i].z = p.at(i)->getWeight()*20;
         //std::cout << "cloud.points.x = " << (cloud).points[i].x << " "
         //     << "cloud.points.y = " << (cloud).points[i].y << " "
         //     << "cloud.points.z = " << (cloud).points[i].z << std::endl;

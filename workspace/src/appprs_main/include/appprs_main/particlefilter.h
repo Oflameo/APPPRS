@@ -14,6 +14,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <random>
 #include <iostream>
+#include <chrono>
 
 class ParticleFilter {
     public:
@@ -31,6 +32,8 @@ class ParticleFilter {
         Eigen::MatrixXd map;
         void initializeParticles();
         void normalizeParticleWeights();
+        void resetParticleWeights();
+
         std::vector<float> lastOdometry;
         std::vector<boost::shared_ptr<single_particle>> particlesContainer;
         cv::Mat map_image;

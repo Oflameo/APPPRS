@@ -39,6 +39,7 @@ public:
     void setX(float x);
     void setY(float y);
     void setTh(float th);
+    void setWeight(float weight);
     void setMapImage(cv::Mat &map_image_in);
     //void setLaserRays(std::vector<Eigen::MatrixXf> &laserFrameRaysInput);
 

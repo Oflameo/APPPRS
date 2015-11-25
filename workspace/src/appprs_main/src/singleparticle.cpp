@@ -48,6 +48,9 @@ void single_particle::setY(float y) {
 void single_particle::setTh(float th) {
     state.at(2) = th;
 }
+void single_particle::setWeight(float new_weight) {
+	weight=new_weight;
+}
 void single_particle::setMapImage(cv::Mat &map_image_in) {
     map_image = map_image_in;
 }
@@ -76,14 +79,15 @@ void single_particle::laserMeasurement(std::vector<float> laserRanges, std::vect
     float state_y = state.at(1);
     float state_th = state.at(2);
 
+#pragma omp parallel for schedule(static,1) num_threads(8)
     for (int i = 0; i < 180; i++) {
         float thi = i*PI/180.0;
         for (int j = 0; j < DENSITY_ALONG_RAY; j++) {
             float a = j*RANGE_MAX/DENSITY_ALONG_RAY;
-            //float x = state_x + 0.25*cos(state_th) + a*cos(thi + state_th);
-            //float y = state_y + 0.25*sin(state_th) + a*sin(thi + state_th);
-            float x = state_x;
-            float y = state_y;
+            float x = state_x + 0.25*cos(state_th) + a*cos(thi + state_th);
+            float y = state_y + 0.25*sin(state_th) + a*sin(thi + state_th);
+            //float x = state_x;
+            //float y = state_y;
 
             int mapValue = queryMapImage(x,y);
             //std::cout << "j = " << j << " a = " << a << " map at (" << x << "," << y << ") = " << mapValue << std::endl;
@@ -100,7 +104,7 @@ void single_particle::laserMeasurement(std::vector<float> laserRanges, std::vect
         }
     }
     weight *= exp(-1*rangeErrorSum/LASER_UNCERTAINTY_SCALAR);
-    std::cout<< "weight = " << weight << " *******************************************************" << std::endl;
+  // std::cout<< "weight = " << weight << " *******************************************************" << std::endl;
 }
 
 void single_particle::weightCrush() {
@@ -110,10 +114,10 @@ void single_particle::weightCrush() {
         state.at(1) < 0 ||
         state.at(1) > MAP_SIZE/MAP_RESOLUTION)
     {
-        weight = 0;
+        weight = 0.001;
     }
     if (queryMapImage(state.at(0),state.at(1)) < 200) {
-        weight = 0;
+        weight = 0.001;
     }
 }
 
@@ -122,5 +126,7 @@ void single_particle::move(std::vector<float> movement) {
     for (uint i = 0; i < 3; i++) {
         state.at(i) += movement.at(i);
     }
-    //weightCrush();
+    weightCrush();
 }
+
+
