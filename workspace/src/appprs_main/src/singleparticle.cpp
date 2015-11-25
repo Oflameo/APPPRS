@@ -129,4 +129,11 @@ void single_particle::move(std::vector<float> movement) {
     weightCrush();
 }
 
+void single_particle::setId(int newId) {
+    id = newId;
+}
+int single_particle::getId() {
+    return id;
+}
+
 

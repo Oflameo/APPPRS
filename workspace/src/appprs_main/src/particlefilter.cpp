@@ -79,6 +79,7 @@ void ParticleFilter::initializeParticles() {
     std::uniform_int_distribution<> yIndex(0,MAP_SIZE-1);
     std::uniform_real_distribution<> th(0,2.0*PI);
 
+    int id = -1;
     while (particlesContainer.size() < NUMBER_OF_PARTICLES) {
         int xIdx = xIndex(generator);
         int yIdx = yIndex(generator);
@@ -90,6 +91,8 @@ void ParticleFilter::initializeParticles() {
             particle.setTh(th(generator));
             particle.setMapImage(map_image);            
             //particle.setLaserRays(laserFrameRays);
+            id++;
+            particle.setId(id);
             auto p = boost::make_shared<single_particle> (particle);
             particlesContainer.push_back(p);
         }
@@ -170,9 +173,13 @@ void ParticleFilter::resample() {
                 break;
             }
         }
+
         current_importance += 1/M;
+
         while (current_importance > importance_sum) {
-            current_particle++;
+            if (current_particle < particlesContainer.size()-1) {
+                current_particle++;
+            }
             importance_sum += particlesContainer.at(current_particle)->getWeight();
             std::cout << "\n sampling arrow has moved past current particle --> incrementing current_particle";
             std::cout << "\n new importance sum = " << importance_sum;
@@ -180,9 +187,21 @@ void ParticleFilter::resample() {
         std::cout << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    std::cout<<"temp container has "<<temp_particlesContainer.size()<<"  orig has "<< particlesContainer.size()<<std::endl;
+    //std::cout<<"temp container has "<<temp_particlesContainer.size()<<"  orig has "<< particlesContainer.size()<<std::endl;
+
+    std::cout << "\n BEFORE particle container swap:" << std::endl;
+    std::cout << "IDs:" << std::endl;
+    for (int i = 0; i < particlesContainer.size(); i++) {
+        std::cout << "original = " << particlesContainer.at(i)->getId() << "   resampled = " << temp_particlesContainer.at(i)->getId() << std::endl;
+    }
 
     particlesContainer.swap(temp_particlesContainer);
+
+    std::cout << "\n AFTER particle container swap:" << std::endl;
+    std::cout << "IDs:" << std::endl;
+    for (int i = 0; i < particlesContainer.size(); i++) {
+        std::cout << "original = " << particlesContainer.at(i)->getId() << "   resampled = " << temp_particlesContainer.at(i)->getId() << std::endl;
+    }
 
     resetParticleWeights();
 }
@@ -198,7 +217,7 @@ void ParticleFilter::normalizeParticleWeights() {
         totalWeight += particlesContainer.at(i)->getWeight();
 	}
     std::cout << "total particle weight BEFORE = " << totalWeight << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 	float new_weight;
 	for(int i=0; i < particlesContainer.size(); i++)

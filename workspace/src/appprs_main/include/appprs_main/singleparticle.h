@@ -33,6 +33,7 @@ public:
     float getY() const;
     float getTh() const;
     float getWeight() const;
+    int getId();
     std::vector<float> getState();
 
     //Mutator Functions
@@ -41,6 +42,7 @@ public:
     void setTh(float th);
     void setWeight(float weight);
     void setMapImage(cv::Mat &map_image_in);
+    void setId(int newId);
     //void setLaserRays(std::vector<Eigen::MatrixXf> &laserFrameRaysInput);
 
     //Output Functions
@@ -55,6 +57,7 @@ private:
     float weight;
     std::vector<float> state;
     cv::Mat map_image;    
+    int id;
 };
 
 
