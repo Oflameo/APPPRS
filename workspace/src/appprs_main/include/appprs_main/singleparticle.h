@@ -39,23 +39,20 @@ public:
     void setY(float y);
     void setTh(float th);
     void setMapImage(cv::Mat &map_image_in);
-    void setLaserRays(std::vector<Eigen::MatrixXf> &laserFrameRaysInput);
+    //void setLaserRays(std::vector<Eigen::MatrixXf> &laserFrameRaysInput);
 
     //Output Functions
-    float laserMeasurement(std::vector<float> laserRanges);
+    void laserMeasurement(std::vector<float> laserRanges, std::vector<float> laserWRTMap);
     void move(std::vector<float> odometry);
 
 
 
 private:
     uchar queryMapImage(float x, float y);
-    std::vector<float> laserCast();
-    Eigen::MatrixXf create2DHomogeneousTransform(std::vector<float> x_y_th);
+    void weightCrush();
     float weight;
     std::vector<float> state;
     cv::Mat map_image;    
-    boost::shared_ptr<std::vector<Eigen::MatrixXf>> laserFrameRays;
-    Eigen::MatrixXf T_laserWRTRobot;
 };
 
 

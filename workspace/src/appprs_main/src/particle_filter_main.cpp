@@ -116,6 +116,9 @@ int main(int argc,  char** argv)
                 //std::cout << "LASER DATA" << std::endl;
                 std::vector<float> laserRanges;
                 std::vector<float> laserWRTMap;
+                for (uint i = 4; i < 7; i++) {
+                    laserWRTMap.push_back(std::atof(logLineSplit.at(i).c_str()));
+                }
                 for (uint i = 7; i < logLineSplit.size(); i++) {
                     laserRanges.push_back(std::atof(logLineSplit.at(i).c_str()));
                     /*
@@ -125,7 +128,7 @@ int main(int argc,  char** argv)
                     }
                     */
                 }
-                pf.laser(laserRanges);
+                pf.laser(laserRanges, laserWRTMap);
             }
             else if (logLine.at(0) == 'O') {
                 //std::cout << "ODOMETRY" << std::endl;

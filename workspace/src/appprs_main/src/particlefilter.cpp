@@ -37,7 +37,7 @@ ParticleFilter::ParticleFilter()
     }
     robotMap.close();
     */
-
+    /*
     for (int i = 0; i < 180; i++) {
         float thi = (float)i;
         Eigen::MatrixXf laserFrameRay = Eigen::MatrixXf::Ones(3,DENSITY_ALONG_RAY);
@@ -45,6 +45,7 @@ ParticleFilter::ParticleFilter()
         laserFrameRay.row(1) = Eigen::VectorXf::LinSpaced(DENSITY_ALONG_RAY,0.0,RANGE_MAX*sin(thi));
         laserFrameRays.push_back(laserFrameRay);
     }
+    */
 
     initializeParticles();
     stepsUntilResample = STEPS_PER_RESAMPLE;
@@ -86,7 +87,7 @@ void ParticleFilter::initializeParticles() {
             particle.setY(yIdx/MAP_RESOLUTION);
             particle.setTh(th(generator));
             particle.setMapImage(map_image);            
-            particle.setLaserRays(laserFrameRays);
+            //particle.setLaserRays(laserFrameRays);
             auto p = boost::make_shared<single_particle> (particle);
             particlesContainer.push_back(p);
         }
@@ -111,12 +112,12 @@ void ParticleFilter::odometry(std::vector<float> newOdometry) {
     lastOdometry.swap(newOdometry);
 }
 
-void ParticleFilter::laser(std::vector<float> laserRanges) {
+void ParticleFilter::laser(std::vector<float> laserRanges, std::vector<float> laserWRTMap) {
 
     stepsUntilResample--;    
     //std::cout << "There are " << stepsUntilResample << " steps until resample" << std::endl;
     for(int i = 0; i < particlesContainer.size(); i++) {
-        particlesContainer.at(i)->laserMeasurement(laserRanges);
+        particlesContainer.at(i)->laserMeasurement(laserRanges, laserWRTMap);
     }
 
 }
