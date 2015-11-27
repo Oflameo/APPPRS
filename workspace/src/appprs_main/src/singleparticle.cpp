@@ -79,7 +79,7 @@ void single_particle::laserMeasurement(std::vector<float> laserRanges, std::vect
 	float state_y = state.at(1);
 	float state_th = state.at(2);
 
-#pragma omp parallel for schedule(static,1) num_threads(8)
+//#pragma omp parallel for schedule(static,1) num_threads(8)
 	for (int i = 0; i < 180; i++) {
 		float thi = i*PI/180.0;
 		float laserRange = laserRanges.at(i);
@@ -93,7 +93,7 @@ void single_particle::laserMeasurement(std::vector<float> laserRanges, std::vect
 
 			//std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
-			if (mapValue < 250) {
+            if (mapValue < 100) {
 				//std::cout << "thi = " << thi << " measurement range = " << laserRanges.at(i)/ODOMETRY_RESOLUTION << "   predicted range = " << a << std::endl;
 				float result = pow(a - laserRange/ODOMETRY_RESOLUTION,2);
 				results.at(i) = result;
@@ -114,12 +114,14 @@ void single_particle::weightCrush() {
 			state.at(1) < 0 ||
 			state.at(1) > MAP_SIZE/MAP_RESOLUTION)
 	{
-		weight *= 0.001;
+        //weight *= 0.001;
 		//resampleME();
+        weight = 0.0;
 	}
 	if (queryMapImage(state.at(0),state.at(1)) < 200) {
-		weight *= 0.001;
+        //weight *= 0.001;
 		//resampleME();
+        weight = 0.0;
 	}
 }
 
@@ -148,11 +150,10 @@ void single_particle::resampleME() {
 		setX(xIdx/MAP_RESOLUTION);
 		setY(yIdx/MAP_RESOLUTION);
 	}
-
-
-
-
 }
 
 void single_particle::perturbPoint(float dx, float dy, float dt) {
+    state.at(0) += dx;
+    state.at(1) += dy;
+    state.at(2) += dt;
 }

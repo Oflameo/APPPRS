@@ -15,6 +15,7 @@
 #include <random>
 #include <iostream>
 #include <chrono>
+#include <omp.h>
 
 class ParticleFilter {
     public:
@@ -23,6 +24,7 @@ class ParticleFilter {
         void odometry(std::vector<float> newOdometry);
         void laser(std::vector<float> laserRanges, std::vector<float> laserWRTMap);
         void resample();
+        void parallelResample();
         std::vector<boost::shared_ptr<single_particle>> getParticles();
         int getStepsUntilResample();
         int getNumberOfParticles();
@@ -34,16 +36,16 @@ class ParticleFilter {
         void normalizeParticleWeights();
         void resetParticleWeights();
         void perturbParticles();
+        void adjustParticleCount();
 
         std::vector<float> lastOdometry;
         std::vector<boost::shared_ptr<single_particle>> particlesContainer;
         cv::Mat map_image;
-        //boost::shared_ptr<std::random_device> rd;
         boost::shared_ptr<std::mt19937> generator;
         boost::shared_ptr<std::normal_distribution<>> movementNoise;
         boost::shared_ptr<std::normal_distribution<>> bearingNoise;
         boost::shared_ptr<std::uniform_real_distribution<>> resamplingBaseDistribution;
-        std::vector<Eigen::MatrixXf> laserFrameRays; // always the same, so just build it once
+        //std::vector<Eigen::MatrixXf> laserFrameRays; // always the same, so just build it once
         int remainingParticles;
 };
 

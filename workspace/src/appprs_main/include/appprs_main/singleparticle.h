@@ -44,7 +44,6 @@ public:
     void setMapImage(cv::Mat &map_image_in);
     void setId(int newId);
     void perturbPoint(float dx, float dy, float dt);
-    //void setLaserRays(std::vector<Eigen::MatrixXf> &laserFrameRaysInput);
 
 
     //Output Functions

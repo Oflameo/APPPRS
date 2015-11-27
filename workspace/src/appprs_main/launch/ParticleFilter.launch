@@ -1,7 +1,7 @@
 <launch>
   
   <arg name="map_folder" default="$(find appprs_main)/maps"/>
-  <arg name="map_name" default="wean_map_rot.yaml"/>
+  <arg name="map_name" default="wean_map.yaml"/>
 
   <node pkg="tf" type="static_transform_publisher" name="baselink_laser_broadcaster" args="0 0 0 0 0 0 1 base_link laser 100" />
  <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0 0 0 0 0 0 1 map odom 100" />
