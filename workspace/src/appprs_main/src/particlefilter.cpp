@@ -3,8 +3,8 @@
 ParticleFilter::ParticleFilter()
 {
 
-    //std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp");
-    std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
+    std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp");
+    //std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
     map_image=cv::imread(imageName,CV_LOAD_IMAGE_GRAYSCALE);
 
     //Check that you got the image
@@ -61,10 +61,20 @@ ParticleFilter::ParticleFilter()
     std::normal_distribution<> bearingNoise_temp(0,BEARING_STD_DEV);
     std::uniform_real_distribution<> resamplingBaseDistribution_temp(0.0,1.0);
 
+
+
+
     generator = boost::make_shared<std::mt19937> (generator_temp);
+
+//    generator2 = boost::make_shared<std::default_random_engine> (generator2_tmp);
+
     movementNoise = boost::make_shared<std::normal_distribution<>> (movementNoise_temp);
     bearingNoise = boost::make_shared<std::normal_distribution<>> (bearingNoise_temp);
     resamplingBaseDistribution = boost::make_shared<std::uniform_real_distribution<>> (resamplingBaseDistribution_temp);
+    //dx = boost::make_shared<std::normal_distribution<>> (dx_temp);
+    //dy = boost::make_shared<std::normal_distribution<>> (dy_temp);
+    //dth = boost::make_shared<std::normal_distribution<>> (dth_temp);
+
 }
 
 ParticleFilter::~ParticleFilter()
@@ -89,6 +99,7 @@ void ParticleFilter::initializeParticles() {
             particle.setX(xIdx/MAP_RESOLUTION);
             particle.setY(yIdx/MAP_RESOLUTION);
             particle.setTh(th(generator));
+
             particle.setMapImage(map_image);            
             //particle.setLaserRays(laserFrameRays);
             id++;
@@ -98,6 +109,8 @@ void ParticleFilter::initializeParticles() {
         }
     }
     std::cout << "finished initializing particles" << std::endl;
+    resetParticleWeights();
+
 }
 
 
@@ -122,11 +135,11 @@ void ParticleFilter::laser(std::vector<float> laserRanges, std::vector<float> la
     stepsUntilResample--;    
     std::cout << "There are " << stepsUntilResample << " steps until resample" << std::endl;
     for(int i = 0; i < particlesContainer.size(); i++) {
-        if (particlesContainer.at(i)->getWeight() > 0.05) {
+        if (particlesContainer.at(i)->getWeight() > 0.005) {
             particlesContainer.at(i)->laserMeasurement(laserRanges, laserWRTMap);
         }
         else {
-            particlesContainer.at(i)->setWeight(particlesContainer.at(i)->getWeight()*0.001);
+            //particlesContainer.at(i)->setWeight(particlesContainer.at(i)->getWeight()*0.001);
         }
     }
 
@@ -134,6 +147,11 @@ void ParticleFilter::laser(std::vector<float> laserRanges, std::vector<float> la
 
 void ParticleFilter::resample() {
     std::cout << "Resampling..." << std::endl;
+    std::normal_distribution<float> dx(0,.05);
+    std::normal_distribution<float> dy(0,.05);
+    std::normal_distribution<float> dth(0,6);
+    std::default_random_engine generator2;
+
     stepsUntilResample = STEPS_PER_RESAMPLE;
     float M = particlesContainer.size();
     normalizeParticleWeights();   
@@ -164,12 +182,16 @@ void ParticleFilter::resample() {
         if (sampling_arrow < importance_sum) {
 
             //temp_particlesContainer.push_back(particlesContainer.at(current_particle));
-            single_particle particle;
-            particle.setX(particlesContainer.at(current_particle)->getX());
-            particle.setY(particlesContainer.at(current_particle)->getY());
-            particle.setTh(particlesContainer.at(current_particle)->getTh());
-            particle.setMapImage(map_image);
-            particle.setId(particlesContainer.at(current_particle)->getId());
+            single_particle particle((*particlesContainer.at(current_particle)));
+            float DX=dx(generator2);
+            float DY=dy(generator2);
+            float DTH=dth(generator2);
+            particle.perturbPoint(DX, DY, DTH);
+            //particle.setX(particlesContainer.at(current_particle)->getX());
+            //particle.setY(particlesContainer.at(current_particle)->getY());
+            //particle.setTh(particlesContainer.at(current_particle)->getTh());
+            //particle.setMapImage(map_image);
+            //particle.setId(particlesContainer.at(current_particle)->getId());
             auto p = boost::make_shared<single_particle> (particle);
             temp_particlesContainer.push_back(p);
 
@@ -219,6 +241,7 @@ void ParticleFilter::resample() {
         std::cout << "original = " << particlesContainer.at(i)->getId() << "   resampled = " << temp_particlesContainer.at(i)->getId() << std::endl;
     }
     */
+    std::cout<<"There are: "<< particlesContainer.size()<<"Particles now"<<std::endl;
 
     resetParticleWeights();
 }
@@ -238,6 +261,14 @@ void ParticleFilter::normalizeParticleWeights() {
     //std::cout << std::endl;
     std::cout << "total particle weight BEFORE = " << totalWeight << std::endl;
     //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    if(totalWeight<.00001)
+    {
+    	std::cout<<"Weights all dropped too crazy low, you fail"<<std::endl;
+    	particlesContainer.clear();
+    	initializeParticles();
+    	totalWeight=particlesContainer.size();
+    }
+
 
 	float new_weight;
 	for(int i=0; i < particlesContainer.size(); i++)
@@ -262,8 +293,8 @@ void ParticleFilter::normalizeParticleWeights() {
     //std::cout << std::endl;
     std::cout << "total particle weight AFTER = " << totalWeight << std::endl;
     //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
 
-}
 void ParticleFilter::resetParticleWeights() {
     //std::cout << "Setting weights to 1..." << std::endl;
 

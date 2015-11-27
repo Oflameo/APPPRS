@@ -43,7 +43,9 @@ public:
     void setWeight(float weight);
     void setMapImage(cv::Mat &map_image_in);
     void setId(int newId);
+    void perturbPoint(float dx, float dy, float dt);
     //void setLaserRays(std::vector<Eigen::MatrixXf> &laserFrameRaysInput);
+
 
     //Output Functions
     void laserMeasurement(std::vector<float> laserRanges, std::vector<float> laserWRTMap);
@@ -58,6 +60,7 @@ private:
     std::vector<float> state;
     cv::Mat map_image;    
     int id;
+    void resampleME();
 };
 
 
