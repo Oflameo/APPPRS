@@ -102,7 +102,9 @@ int main(int argc,  char** argv)
 
     // open robot log
     //ifstream robotLog("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/log/robotdata1.log");
-    ifstream robotLog("/home/jamie/Desktop/hw4_robostats/robotdata1.log");
+   // ifstream robotLog("/home/jamie/Desktop/hw4_robostats/robotdata1.log");
+    ifstream robotLog("/home/jamie/Desktop/hw4_robostats/ascii-robotdata2.log");
+
     string logLine;
     //float maxLaserRangeFromLog = 0;
     if (robotLog.is_open()) {
@@ -219,7 +221,6 @@ void temp_initialize_points(pcl::PointCloud<pcl::PointXYZ> &cloud,
 	cout<<"ptr_container has:"<< (ptr_container).size()<< "items in it"<<endl;
 }
 */
-
 void updateVisualization(ParticleFilter &pf,
 		pcl::PointCloud<pcl::PointXYZ> &cloud,
 		sensor_msgs::PointCloud2 &output,
@@ -228,6 +229,7 @@ void updateVisualization(ParticleFilter &pf,
 {
     auto p = pf.getParticles();
 
+//#pragma omp parallel for schedule(static,1) num_threads(8)
 	for (int i=0; i<pf.getNumberOfParticles(); i++)
 	{
         (cloud).points[i].x = p.at(i)->getX();
@@ -259,7 +261,8 @@ void updateVisualization(ParticleFilter &pf,
     //{
 		output.header.stamp = ros::Time::now();
 		pub.publish (output);
-        ros::spinOnce ();
+	//	cloud.clear();
+		ros::spinOnce ();
     //	loop_rate.sleep();
     //}
 

@@ -15,37 +15,6 @@ ParticleFilter::ParticleFilter()
     }
 
     // open map
-    /*
-    std::ifstream robotMap("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/map/wean.dat");
-    std::string mapLine;
-    map.resize(MAP_SIZE,MAP_SIZE);
-    if (robotMap.is_open()) {
-        for (int i = 0; i < 7; i++) {
-            getline(robotMap,mapLine); // skip 7 header lines
-        }
-        int mapRow = 0;
-        while (getline(robotMap,mapLine)) {
-            boost::trim(mapLine);
-            std::vector<std::string> mapLineSplit;
-            boost::split(mapLineSplit,mapLine,boost::is_any_of(" "),boost::token_compress_on);
-            for (uint i = 0; i < mapLineSplit.size(); i++) {
-                double mapValue = std::atof(mapLineSplit.at(i).c_str());
-                map(mapRow,i) = mapValue;
-            }
-            mapRow++;
-        }
-    }
-    robotMap.close();
-    */
-    /*
-    for (int i = 0; i < 180; i++) {
-        float thi = (float)i;
-        Eigen::MatrixXf laserFrameRay = Eigen::MatrixXf::Ones(3,DENSITY_ALONG_RAY);
-        laserFrameRay.row(0) = Eigen::VectorXf::LinSpaced(DENSITY_ALONG_RAY,0.0,RANGE_MAX*cos(thi));
-        laserFrameRay.row(1) = Eigen::VectorXf::LinSpaced(DENSITY_ALONG_RAY,0.0,RANGE_MAX*sin(thi));
-        laserFrameRays.push_back(laserFrameRay);
-    }
-    */
 
     initializeParticles();
     stepsUntilResample = STEPS_PER_RESAMPLE;
@@ -66,15 +35,9 @@ ParticleFilter::ParticleFilter()
 
     generator = boost::make_shared<std::mt19937> (generator_temp);
 
-//    generator2 = boost::make_shared<std::default_random_engine> (generator2_tmp);
-
     movementNoise = boost::make_shared<std::normal_distribution<>> (movementNoise_temp);
     bearingNoise = boost::make_shared<std::normal_distribution<>> (bearingNoise_temp);
     resamplingBaseDistribution = boost::make_shared<std::uniform_real_distribution<>> (resamplingBaseDistribution_temp);
-    //dx = boost::make_shared<std::normal_distribution<>> (dx_temp);
-    //dy = boost::make_shared<std::normal_distribution<>> (dy_temp);
-    //dth = boost::make_shared<std::normal_distribution<>> (dth_temp);
-
 }
 
 ParticleFilter::~ParticleFilter()
@@ -87,10 +50,12 @@ void ParticleFilter::initializeParticles() {
     std::mt19937 generator(rd());
     std::uniform_int_distribution<> xIndex(350,700);
     std::uniform_int_distribution<> yIndex(0,MAP_SIZE-1);
+    remainingParticles=NUMBER_OF_PARTICLES;
+
     std::uniform_real_distribution<> th(0,2.0*PI);
 
     int id = -1;
-    while (particlesContainer.size() < NUMBER_OF_PARTICLES) {
+    while (particlesContainer.size() < remainingParticles) {
         int xIdx = xIndex(generator);
         int yIdx = yIndex(generator);
         //std::cout << "map coord (x,y) = " << xIdx/MAP_RESOLUTION << ", " << yIdx/MAP_RESOLUTION << " image coord (x,y) = " << MAP_SIZE-1-yIdx << ", " << xIdx << std::endl;
@@ -101,7 +66,6 @@ void ParticleFilter::initializeParticles() {
             particle.setTh(th(generator));
 
             particle.setMapImage(map_image);            
-            //particle.setLaserRays(laserFrameRays);
             id++;
             particle.setId(id);
             auto p = boost::make_shared<single_particle> (particle);
@@ -147,13 +111,10 @@ void ParticleFilter::laser(std::vector<float> laserRanges, std::vector<float> la
 
 void ParticleFilter::resample() {
     std::cout << "Resampling..." << std::endl;
-    std::normal_distribution<float> dx(0,.05);
-    std::normal_distribution<float> dy(0,.05);
-    std::normal_distribution<float> dth(0,6);
-    std::default_random_engine generator2;
+
 
     stepsUntilResample = STEPS_PER_RESAMPLE;
-    float M = particlesContainer.size();
+    float M = remainingParticles;
     normalizeParticleWeights();   
 
     std::cout << "Done normalizing weights..." << std::endl;
@@ -180,18 +141,7 @@ void ParticleFilter::resample() {
 
 
         if (sampling_arrow < importance_sum) {
-
-            //temp_particlesContainer.push_back(particlesContainer.at(current_particle));
-            single_particle particle((*particlesContainer.at(current_particle)));
-            float DX=dx(generator2);
-            float DY=dy(generator2);
-            float DTH=dth(generator2);
-            particle.perturbPoint(DX, DY, DTH);
-            //particle.setX(particlesContainer.at(current_particle)->getX());
-            //particle.setY(particlesContainer.at(current_particle)->getY());
-            //particle.setTh(particlesContainer.at(current_particle)->getTh());
-            //particle.setMapImage(map_image);
-            //particle.setId(particlesContainer.at(current_particle)->getId());
+        	single_particle particle((*particlesContainer.at(current_particle)));
             auto p = boost::make_shared<single_particle> (particle);
             temp_particlesContainer.push_back(p);
 
@@ -234,6 +184,7 @@ void ParticleFilter::resample() {
 
     particlesContainer.swap(temp_particlesContainer);
 
+
     /*
     std::cout << "\n AFTER particle container swap:" << std::endl;
     std::cout << "IDs:" << std::endl;
@@ -242,8 +193,14 @@ void ParticleFilter::resample() {
     }
     */
     std::cout<<"There are: "<< particlesContainer.size()<<"Particles now"<<std::endl;
-
+    perturbParticles();
     resetParticleWeights();
+    if (remainingParticles>500)
+    {
+    	//remainingParticles=round(remainingParticles*.9);
+    }
+    temp_particlesContainer.clear();
+
 }
 
 void ParticleFilter::normalizeParticleWeights() {
@@ -312,7 +269,24 @@ int ParticleFilter::getStepsUntilResample() {
 }
 
 int ParticleFilter::getNumberOfParticles() {
-    return NUMBER_OF_PARTICLES;
+    return particlesContainer.size();
 }
 
+void ParticleFilter::perturbParticles() {
 
+    std::normal_distribution<float> dx(0,.1);
+    std::normal_distribution<float> dy(0,.1);
+    std::normal_distribution<float> dth(0,6);
+    std::default_random_engine generator2;
+
+
+
+#pragma omp parallel for schedule(static,1) num_threads(8)
+    for (int i=0; i < particlesContainer.size(); i++)
+    {
+        float DX=dx(generator2);
+        float DY=dy(generator2);
+        float DTH=dth(generator2);
+    	particlesContainer.at(i)->perturbPoint(DX,DY,DTH);
+    }
+}

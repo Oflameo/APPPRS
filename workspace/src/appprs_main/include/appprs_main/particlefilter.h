@@ -33,6 +33,7 @@ class ParticleFilter {
         void initializeParticles();
         void normalizeParticleWeights();
         void resetParticleWeights();
+        void perturbParticles();
 
         std::vector<float> lastOdometry;
         std::vector<boost::shared_ptr<single_particle>> particlesContainer;
@@ -43,11 +44,7 @@ class ParticleFilter {
         boost::shared_ptr<std::normal_distribution<>> bearingNoise;
         boost::shared_ptr<std::uniform_real_distribution<>> resamplingBaseDistribution;
         std::vector<Eigen::MatrixXf> laserFrameRays; // always the same, so just build it once
-      //  boost::shared_ptr<std::normal_distribution<>> dx;
-       // boost::shared_ptr<std::normal_distribution<>> dy;
-       // boost::shared_ptr<std::normal_distribution<>> dth;
-       // boost::make_shared<std::default_random_engine> generator2;
-
+        int remainingParticles;
 };
 
 #endif // PARTICLEFILTER_H
