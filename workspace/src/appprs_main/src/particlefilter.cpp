@@ -3,7 +3,9 @@
 ParticleFilter::ParticleFilter()
 {
 
-    std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp");
+//    std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp");
+    std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8_rot.bmp");
+
     //std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
     map_image=cv::imread(imageName,CV_LOAD_IMAGE_GRAYSCALE);
 
@@ -48,8 +50,10 @@ ParticleFilter::~ParticleFilter()
 void ParticleFilter::initializeParticles() {
     std::random_device rd;
     std::mt19937 generator(rd());
-    std::uniform_int_distribution<> xIndex(350,700);
-    std::uniform_int_distribution<> yIndex(0,MAP_SIZE-1);
+   std::uniform_int_distribution<> xIndex(350,700);
+   std::uniform_int_distribution<> yIndex(0,MAP_SIZE-1);
+  //  std::uniform_int_distribution<> xIndex(0,MAP_SIZE-1);
+   //std::uniform_int_distribution<> yIndex(300,720);
     remainingParticles=NUMBER_OF_PARTICLES;
 
     std::uniform_real_distribution<> th(0,2.0*PI);
@@ -274,8 +278,8 @@ int ParticleFilter::getNumberOfParticles() {
 
 void ParticleFilter::perturbParticles() {
 
-    std::normal_distribution<float> dx(0,.1);
-    std::normal_distribution<float> dy(0,.1);
+    std::normal_distribution<float> dx(0,.5);
+    std::normal_distribution<float> dy(0,.5);
     std::normal_distribution<float> dth(0,6);
     std::default_random_engine generator2;
 

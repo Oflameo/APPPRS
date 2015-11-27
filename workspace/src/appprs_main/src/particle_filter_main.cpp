@@ -79,7 +79,9 @@ int main(int argc,  char** argv)
 	(cloud).height = 1;
 	(cloud).points.resize ((cloud).width * (cloud).height);
 
-   std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
+   //std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
+   std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8_rot.bmp"); // by default
+
     //std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
 	cv::Mat map_image=cv::imread(imageName,CV_LOAD_IMAGE_GRAYSCALE);
 
@@ -102,7 +104,8 @@ int main(int argc,  char** argv)
 
     // open robot log
     //ifstream robotLog("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/log/robotdata1.log");
-   // ifstream robotLog("/home/jamie/Desktop/hw4_robostats/robotdata1.log");
+   //ifstream robotLog("/home/jamie/Desktop/hw4_robostats/robotdata1.log");
+  //  ifstream robotLog("/home/jamie/Desktop/hw4_robostats/robotdata1.log");
     ifstream robotLog("/home/jamie/Desktop/hw4_robostats/ascii-robotdata2.log");
 
     string logLine;
