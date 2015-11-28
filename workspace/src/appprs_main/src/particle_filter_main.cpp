@@ -79,9 +79,9 @@ int main(int argc,  char** argv)
 	(cloud).height = 1;
 	(cloud).points.resize ((cloud).width * (cloud).height);
 
-    //std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
-    //std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8_rot.bmp"); // by default
-    std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
+    //rstd::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
+    std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8_rot.bmp"); // by default
+    //std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
 	cv::Mat map_image=cv::imread(imageName,CV_LOAD_IMAGE_GRAYSCALE);
 
 	//Check that you got the image
@@ -91,22 +91,13 @@ int main(int argc,  char** argv)
 	}
 
 
-    //temp_initialize_points(cloud, map_image ,temp_ptr_container, output);
-
-    /*
-    cv::namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
-    cv::imshow( "Display window", map_image );
-    cv::waitKey(0);
-    */
-
     std::cout << "about to visualize" << std::endl;
 
     // open robot log
-    ifstream robotLog("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/log/ascii-robotdata3.log");
+    //ifstream robotLog("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/log/ascii-robotdata3.log");
     //ifstream robotLog("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/log/robotdata1.log");
-    //ifstream robotLog("/home/jamie/Desktop/hw4_robostats/robotdata1.log");
-    //ifstream robotLog("/home/jamie/Desktop/hw4_robostats/robotdata1.log");
-    //ifstream robotLog("/home/jamie/Desktop/hw4_robostats/ascii-robotdata2.log");
+    ifstream robotLog("/home/jamie/Desktop/hw4_robostats/robotdata1.log");
+    //ifstream robotLog("/home/jamie/Desktop/hw4_robostats/ascii-robotdata4.log");
 
     string logLine;
     //float maxLaserRangeFromLog = 0;
@@ -127,12 +118,6 @@ int main(int argc,  char** argv)
                 }
                 for (uint i = 7; i < logLineSplit.size(); i++) {
                     laserRanges.push_back(std::atof(logLineSplit.at(i).c_str()));
-                    /*
-                    if (std::atof(logLineSplit.at(i).c_str()) > maxLaserRangeFromLog) {
-                        maxLaserRangeFromLog = std::atof(logLineSplit.at(i).c_str());
-                        std::cout << "max laser range from log = " << maxLaserRangeFromLog << std::endl;
-                    }
-                    */
                 }
                 pf.laser(laserRanges, laserWRTMap);
             }
@@ -177,60 +162,6 @@ int main(int argc,  char** argv)
 	return 0;
 }
 
-/*
-void temp_initialize_points(pcl::PointCloud<pcl::PointXYZ> &cloud,
-		cv::Mat image,
-		std::vector<boost::shared_ptr<single_particle>> &ptr_container,
-		sensor_msgs::PointCloud2 &output)
-{
-
-	//Set the reference frame for your pointcloud (ROS bookkeeping)
-	output.header.frame_id = std::string("/odom");
-
-
-	//Create your Points
-	for (size_t i = 0; i < (cloud).points.size (); ++i)
-	{
-		bool isbad=0;
-		int  Count=0;
-
-		float pix_x;
-		float pix_y;
-		do
-		{
-			//Start out with a random point within the sub-rectangle that I decided
-			//heuristically was a good starting spot
-			Count++;
-			pix_x=rand() % 350+350;
-			pix_y=rand() % 761;
-
-			//(cloud).points[i].x = (pix_x/10.0);
-			//(cloud).points[i].y = (pix_y/10.0);
-			//(*cloud).points[i].z = 0;
-
-			//Check what map value that point starts at using the map-image
-			int good=image.at<uchar>(800-pix_y,pix_x);
-
-			//Only allow points to exist at places with high robot-probability
-			isbad=(good<250);
-
-		}while(isbad && (Count<1000));
-		float rand_th=rand()%181*PI/180;
-
-
-		///This stuff is more advanced versions of the problem that I will solve when I can do even the most basic of operations
-
-		single_particle Particle(pix_x/10,pix_y/10, rand_th);
-	//	boost::shared_ptr<single_particle> p1(Particle);
-		auto p1 = boost::make_shared<single_particle> (Particle);
-
-		ptr_container.push_back(p1);
-
-
-	}
-	cout<<"ptr_container has:"<< (ptr_container).size()<< "items in it"<<endl;
-}
-*/
 void updateVisualization(ParticleFilter &pf,
 		pcl::PointCloud<pcl::PointXYZ> &cloud,
 		sensor_msgs::PointCloud2 &output,
@@ -245,9 +176,6 @@ void updateVisualization(ParticleFilter &pf,
         (cloud).points[i].x = p.at(i)->getX();
         (cloud).points[i].y = p.at(i)->getY();
         (cloud).points[i].z = p.at(i)->getWeight()*5;
-        //std::cout << "cloud.points.x = " << (cloud).points[i].x << " "
-        //     << "cloud.points.y = " << (cloud).points[i].y << " "
-        //     << "cloud.points.z = " << (cloud).points[i].z << std::endl;
 	}
 
     //std::cout << "put everything in a cloud" << std::endl;
@@ -258,23 +186,10 @@ void updateVisualization(ParticleFilter &pf,
 	//Set the reference frame for your pointcloud (ROS bookkeeping)
 	output.header.frame_id = std::string("/odom");
 
-	//Set the loop rate for republishing points. This will cease to be necessary later on
-    //ros::Rate loop_rate(100);
-
-
-	//This just keeps the program and point cloud displayed. Once you are calling this from another function,
-	//It doesn't need to be in an eternal loop.
-
-    //std::cout << "done converting to ROS cloud" << std::endl;
-
-    //while(nh.ok())
-    //{
 		output.header.stamp = ros::Time::now();
 		pub.publish (output);
-	//	cloud.clear();
+
 		ros::spinOnce ();
-    //	loop_rate.sleep();
-    //}
 
 }
 

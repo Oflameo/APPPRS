@@ -4,8 +4,8 @@ ParticleFilter::ParticleFilter()
 {
 
     //std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp");
-    //std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8_rot.bmp");
-    std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
+    std::string imageName("/home/jamie/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8_rot.bmp");
+    //std::string imageName("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/APPPRS/workspace/src/appprs_main/maps/wean_map_uint8.bmp"); // by default
     map_image=cv::imread(imageName,CV_LOAD_IMAGE_GRAYSCALE);
 
     //Check that you got the image
@@ -250,24 +250,10 @@ void ParticleFilter::resample() {
     }
     //std::cout<<"temp container has "<<temp_particlesContainer.size()<<"  orig has "<< particlesContainer.size()<<std::endl;
 
-    /*
-    std::cout << "\n BEFORE particle container swap:" << std::endl;
-    std::cout << "IDs:" << std::endl;
-    for (int i = 0; i < particlesContainer.size(); i++) {
-        std::cout << "original = " << particlesContainer.at(i)->getId() << "   resampled = " << temp_particlesContainer.at(i)->getId() << std::endl;
-    }
-    */
 
     particlesContainer.swap(temp_particlesContainer);
 
 
-    /*
-    std::cout << "\n AFTER particle container swap:" << std::endl;
-    std::cout << "IDs:" << std::endl;
-    for (int i = 0; i < particlesContainer.size(); i++) {
-        std::cout << "original = " << particlesContainer.at(i)->getId() << "   resampled = " << temp_particlesContainer.at(i)->getId() << std::endl;
-    }
-    */
     std::cout<<"There are: "<< particlesContainer.size()<<"Particles now"<<std::endl;
     perturbParticles();
     resetParticleWeights();
@@ -298,7 +284,7 @@ void ParticleFilter::normalizeParticleWeights() {
     //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 
-    if (totalWeight == 0)
+    if (totalWeight ==0)
     {
         std::cout<<"All particles have been crushed. Reset all particles."<<std::endl;
     	particlesContainer.clear();

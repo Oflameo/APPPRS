@@ -9,13 +9,14 @@ const float MAP_RESOLUTION = 10.0;
 const float ODOMETRY_RESOLUTION = 100.0;
 const float PI = 3.14159265359;
 
-const float MOVEMENT_STD_DEV = 0.00001;
+const float MOVEMENT_STD_DEV = 0.00035;
 const float BEARING_STD_DEV = 0.0;//0.00001;
 
 const float RANGE_MAX = 15.0;
-const int DENSITY_ALONG_RAY = 75;
+const int DENSITY_ALONG_RAY = 150;
 
 const float LASER_UNCERTAINTY_SCALAR = 1000.0;
+//const float LASER_UNCERTAINTY_SCALAR = 1500.0;
 
 #endif // TUNABLE_PARAMETERS
 
