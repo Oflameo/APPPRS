@@ -96,8 +96,10 @@ int main(int argc,  char** argv)
     // open robot log
     //ifstream robotLog("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/log/ascii-robotdata3.log");
     //ifstream robotLog("/home/jazen/Documents/Classes/2015_Fall/16-831_Stats_in_Robotics/HW/HW_4/data/log/robotdata1.log");
-    ifstream robotLog("/home/jamie/Desktop/hw4_robostats/robotdata1.log");
-    //ifstream robotLog("/home/jamie/Desktop/hw4_robostats/ascii-robotdata4.log");
+   // ifstream robotLog("/home/jamie/Desktop/hw4_robostats/robotdata1.log");
+   // ifstream robotLog("/home/jamie/Desktop/hw4_robostats/ascii-robotdata3.log");
+    ifstream robotLog("/home/jamie/Desktop/hw4_robostats/kidnapped_robot.log");
+
 
     string logLine;
     //float maxLaserRangeFromLog = 0;

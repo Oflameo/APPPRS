@@ -47,7 +47,7 @@ ParticleFilter::~ParticleFilter()
 void ParticleFilter::initializeParticles() {
     std::random_device rd;
     std::mt19937 generator(rd());
-    std::uniform_int_distribution<> xIndex(350,700);
+    std::uniform_int_distribution<> xIndex(330,MAP_SIZE-1);
     std::uniform_int_distribution<> yIndex(0,MAP_SIZE-1);
     remainingParticles=NUMBER_OF_PARTICLES;
 
@@ -346,7 +346,7 @@ void ParticleFilter::perturbParticles() {
 
     std::normal_distribution<float> dx(0,0.1);
     std::normal_distribution<float> dy(0,0.1);
-    std::normal_distribution<float> dth(0,PI/4.0);
+    std::normal_distribution<float> dth(0,PI/20.0);
     std::default_random_engine generator2;
 
 
