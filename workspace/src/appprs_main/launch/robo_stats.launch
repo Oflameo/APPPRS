@@ -1,6 +1,5 @@
 <launch>
 	<node name="scan_to_point_cloud" pkg="appprs_main" type="scan_to_point_cloud"/>
 	<node name="pcl_filter" pkg="pcl_filter" type="pcl_filter"/>
-	<node name="pcl_cluster" pkg="pcl_filter" type="pcl_cluster"/>
 	<node name="tracker" pkg="kf_tracker" type="tracker" />
 </launch>

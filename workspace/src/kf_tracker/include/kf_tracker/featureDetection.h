@@ -12,11 +12,11 @@
 using namespace cv;
 using namespace std;
 
-class laneDetection{
+class featureDetection{
 
 public:
-	laneDetection();
-	~laneDetection();
+	featureDetection();
+	~featureDetection();
 	void filteringPipeLine(Mat);
 	vector<Vec2f> houghTransform();
 	Mat lineItr(Mat,vector<Vec2f>, string);
