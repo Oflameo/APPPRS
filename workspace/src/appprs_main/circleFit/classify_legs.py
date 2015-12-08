@@ -13,12 +13,12 @@ def handle_classify_legs(req):
     return ClassifyLegsResponse(label)
 
 def classify_legs_server():
-    rospy.init_node('classify_legs_server(')
+    rospy.init_node('classify_legs_server')
     s = rospy.Service('classify_legs', ClassifyLegs, handle_classify_legs)
     print "Ready to classify legs"
     rospy.spin()
 
 if __name__ == "__main__":
-	with open('./trained_leg_svm_classifier.pkl', 'r') as f:
+	with open('trained_leg_svm_classifier.pkl', 'r') as f:
 	    classifier = pickle.load(f)
-    add_two_ints_server()
+    classify_legs_server()
