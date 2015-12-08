@@ -155,7 +155,7 @@ vector<Point2f> featureDetection::ransac(vector<Point2f> data){
 	return res;
 }
 
-// Draw Lines on the image
+
 Mat featureDetection::lineItr(Mat img, vector<Vec2f> lines, string name){
 
 	Mat imgRGB;
@@ -186,7 +186,7 @@ Mat featureDetection::lineItr(Mat img, vector<Vec2f> lines, string name){
 
 	}
 
-	///// Finding the intersection point of two lines to plot 
+	
 	Point pint;
 	bool check = findIntersection(endPoints,pint);
 
@@ -196,7 +196,7 @@ Mat featureDetection::lineItr(Mat img, vector<Vec2f> lines, string name){
 	}	
 	/////
 
-	// Saving to intercepts.csv
+	
 	float xIntercept = min(endPoints[0].x,endPoints[2].x);
 	myfile << name << "," << xIntercept * 2 << "," << pint.x * 2 << endl;
 
