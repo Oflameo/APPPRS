@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS "-std=c++0x")
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  rospy
   geometry_msgs
   pcl_ros
   tf
@@ -16,16 +17,18 @@ find_package(catkin REQUIRED COMPONENTS
   joy
   genmsg
   laser_geometry
+  message_generation
 )
 find_package( OpenCV REQUIRED )
 find_package( Boost REQUIRED )
 
-#add_service_files(
-#   FILES
+add_service_files(
+   FILES
+   ClassifyLegs.srv
 #     worldToRobot.srv
 #     PcntrlPP.srv
 #     localPP_SRV.srv
-#   )
+   )
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -47,7 +50,8 @@ find_package( Boost REQUIRED )
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
    DEPENDENCIES
-   std_msgs  # Or other packages containing msgs
+   std_msgs
+   appprs_main  # Or other packages containing msgs
  )
 
 ###################################
@@ -62,7 +66,7 @@ find_package( Boost REQUIRED )
 catkin_package(
 #  INCLUDE_DIRS include
   LIBRARIES appprs_main
-  CATKIN_DEPENDS roscpp pcl_ros tf
+  CATKIN_DEPENDS rospy roscpp pcl_ros tf message_runtime
   DEPENDS system_lib
 )
 
@@ -87,6 +91,9 @@ target_link_libraries(appprs_main
 appprs_main  ${OpenCV_LIBRARIES}
              ${catkin_LIBRARIES}
 )
+
+catkin_install_python(PROGRAMS circleFit/classify_legs.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 add_executable(extract_features node/extract_features.cpp)
 target_link_libraries(extract_features ${catkin_LIBRARIES}
