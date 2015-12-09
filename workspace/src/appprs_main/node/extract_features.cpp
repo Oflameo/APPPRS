@@ -24,13 +24,13 @@
 #include <std_msgs/Float32MultiArray.h>
 std::ofstream myfile;
 ros::ServiceClient client;
-ros::NodeHandle nh;
+std::vector<std::vector<float>> bbox_holder;
 
-void publish_cloud(int label, std::vector<float> bbox);
-
+//void publish_boxes();
 
 int get_features(const sensor_msgs::PointCloud2ConstPtr& input,
 		const int cloud_number, std::vector<float> &bbox) {
+	//std::cout<<"started get_features function"<<std::endl;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud(
 			new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::fromROSMsg(*input, *input_cloud);
@@ -48,29 +48,23 @@ int get_features(const sensor_msgs::PointCloud2ConstPtr& input,
 	std::vector<int>::const_iterator pit;
 
 	//Extract Points from Cloud for fast lookup
-	float min_x=1000;
-	float min_y=1000;
-	float max_x=-1000;
-	float max_y=-1000;
+	float min_x = 1000;
+	float min_y = 1000;
+	float max_x = -1000;
+	float max_y = -1000;
 
 	for (int i = 0; i < Size; i++) {
 		X[i] = internal_cloud.points[i].x;
 		Y[i] = internal_cloud.points[i].y;
-		if (X[i]<min_x)
-			min_x=X[i];
-		if (Y[i]<min_y)
-			min_y=Y[i];
-		if (X[i]>max_x)
-			max_x=X[i];
-		if (Y[i]>max_y)
-			max_y=Y[i];
+		if (X[i] < min_x)
+			min_x = X[i];
+		if (Y[i] < min_y)
+			min_y = Y[i];
+		if (X[i] > max_x)
+			max_x = X[i];
+		if (Y[i] > max_y)
+			max_y = Y[i];
 	}
-	//Calcluate bounding box around point
-	bbox.push_back(min_x);
-	bbox.push_back(max_x);
-	bbox.push_back(min_y);
-	bbox.push_back(max_y);
-
 	//Calculating Circles and stuff
 	Data data1(Size, X, Y);
 
@@ -138,98 +132,112 @@ int get_features(const sensor_msgs::PointCloud2ConstPtr& input,
 	}
 	float temp_err = std_xy;
 	std_xy = sqrt(1.0 / (float) Size * temp_err);
-
-
+	//std::cout<<"doing multi_array_things"<<std::endl;
 	std_msgs::Float32MultiArray features;
 	//float features[13];
 
-	float SCALEME = 1;
-	features.data[0] = Size; //number of points
-	features.data[1] = std_xy * SCALEME;  //Standard Dev from Mean
-	features.data[2] = 0.5 * SCALEME; //mean distance from median
-	features.data[3] = 1 * SCALEME; //jump distance from last segment (not doing)
-	features.data[4] = 0.5 * SCALEME; //just distance from next segment (nto doing)
-	features.data[5] = sqrt(pow(X[Size - 1] - X[0], 2) + pow(Y[Size - 1] - Y[0], 2))
-					* SCALEME; //width
-	features.data[6] = 1 * SCALEME;
-	features.data[7] = circle.s * SCALEME; //Sum of squared residuals
-	features.data[8] = circle.r * SCALEME; //radius of circle
-	features.data[9] = boundary_length * SCALEME;
-	features.data[10] = std_dist * SCALEME; //standard deviation of distances between points
-	features.data[11] = avg_curve * SCALEME; //mean curvature of object
-	features.data[12] = angle_avg * SCALEME; //mean angle between consecutive points
+	float SCALEME = 100000;
+	features.data.push_back(Size);//[0] = Size; //number of points
+	features.data.push_back(std_xy * SCALEME);//[1] = std_xy * SCALEME;  //Standard Dev from Mean
+	features.data.push_back(0.5 * SCALEME);//[2] = 0.5 * SCALEME; //mean distance from median
+	features.data.push_back(1 * SCALEME);//[3] = 1 * SCALEME; //jump distance from last segment (not doing)
+	features.data.push_back(0.5 * SCALEME);// = 0.5 * SCALEME; //just distance from next segment (nto doing)
+	features.data.push_back(sqrt(pow(X[Size - 1] - X[0], 2) + pow(Y[Size - 1] - Y[0], 2)) * SCALEME);//[5] = sqrt(
+	//			pow(X[Size - 1] - X[0], 2) + pow(Y[Size - 1] - Y[0], 2)) * SCALEME; //width
+	features.data.push_back(1 * SCALEME);//[3] = 1 * SCALEME; //jump distance from last segment (not doing)
+	features.data.push_back((float)circle.s*SCALEME);//[7] = circle.s * SCALEME; //Sum of squared residuals
+	features.data.push_back((float)circle.r*SCALEME);// = circle.r * SCALEME; //radius of circle
+	features.data.push_back(boundary_length*SCALEME);// = boundary_length * SCALEME;
+	features.data.push_back(std_dist*SCALEME);// = std_dist * SCALEME; //standard deviation of distances between points
+	features.data.push_back(avg_curve*SCALEME);// = avg_curve * SCALEME; //mean curvature of object
+	features.data.push_back(angle_avg*SCALEME);// = angle_avg * SCALEME; //mean angle between consecutive points
+	//std::cout<<"multi_array_worked"<<std::endl;
+	if (0) {
+		myfile << ros::Time::now() << ',' << cloud_number << ',';
+		for (int i = 0; i < 13; i++) {
 
-	myfile << ros::Time::now() << ',' << cloud_number << ',';
-	for (int i = 0; i < 13; i++) {
-
-		myfile << std::setprecision(5) << features.data[i] << ',';
+			myfile << std::setprecision(5) << features.data[i] << ',';
+		}
+		myfile << std::endl;
 	}
-	myfile << std::endl;
+	//std::cout<<"make srv"<<std::endl;
 	appprs_main::ClassifyLegs srv;
 
-	srv.request.features=features;
-	return client.call(srv);
+	//std::cout << "call service" << std::endl;
+	srv.request.features = features;
+	int lab = client.call(srv);
 
 
-	return 0;
+	//Calcluate bounding box around point
+	bbox.push_back(min_x);
+	bbox.push_back(max_x);
+	bbox.push_back(min_y);
+	bbox.push_back(max_y);
+	bbox.push_back((float)lab);
+	//bbox_holder.at(cloud_number)=bbox;
+
+	//std::cout << "service called successfully" << std::endl;
+
+	std::cout << "cloud number: " << cloud_number << "label: " << lab
+			<< std::endl;
+	return lab;
 
 }
 
 void cloud1_cb(const sensor_msgs::PointCloud2ConstPtr& input) {
 	if (!(*input).data.empty()) {
 		std::vector<float> bbox;
-		int label=
-				get_features(input, 2,bbox);
+		int label = get_features(input, 2, bbox);
 
 	}
 }
 void cloud2_cb(const sensor_msgs::PointCloud2ConstPtr& input) {
 	if (!(*input).data.empty()) {
 		std::vector<float> bbox;
-		int label=
-				get_features(input, 2,bbox);
+		int label = get_features(input, 2, bbox);
 	}
 }
 void cloud3_cb(const sensor_msgs::PointCloud2ConstPtr& input) {
 	if (!(*input).data.empty()) {
 		std::vector<float> bbox;
-		int label=
-				get_features(input, 3,bbox);
+		int label = get_features(input, 3, bbox);
 	}
 }
 void cloud4_cb(const sensor_msgs::PointCloud2ConstPtr& input) {
 	if (!(*input).data.empty()) {
 		std::vector<float> bbox;
-		int label=
-				get_features(input, 4,bbox);
+		int label = get_features(input, 4, bbox);
 	}
 }
 void cloud5_cb(const sensor_msgs::PointCloud2ConstPtr& input) {
 	if (!(*input).data.empty()) {
 		std::vector<float> bbox;
-		int label=
-				get_features(input, 5,bbox);
+		int label = get_features(input, 5, bbox);
 	}
 }
 void cloud6_cb(const sensor_msgs::PointCloud2ConstPtr& input) {
 	if (!(*input).data.empty()) {
 		std::vector<float> bbox;
-		int label=
-				get_features(input, 6,bbox);
+		int label = get_features(input, 6, bbox);
 	}
 }
 
 int main(int argc, char** argv) {
+	//std::cout<<"about to initialize everything"<<std::endl;
 	// Initialize ROS
 	ros::init(argc, argv, "my_pcl_filter");
 	ros::NodeHandle nh;
-	ros::Publisher vis_pub = nh.advertise<visualization_msgs::Marker>( "visualization_marker", 0 );
-	static ros::ServiceClient client = nh.serviceClient<appprs_main::ClassifyLegs>("classify_legs");
+	ros::Publisher vis_pub = nh.advertise<visualization_msgs::Marker>(
+			"bounding_boxes", 0);
 
+	//std::cout<<"about to initialize service client"<<std::endl;
+	ros::ServiceClient client = nh.serviceClient<
+			appprs_main::ClassifyLegs>("classify_legs");
 
 	myfile.open("features.csv");
 
 	// Create a ROS subscriber for the input point cloud
+	//std::cout<<"making subscribers"<<std::endl;
 	ros::Subscriber sub1 = nh.subscribe("cluster_1", 1, cloud1_cb);
 	ros::Subscriber sub2 = nh.subscribe("cluster_2", 1, cloud2_cb);
 	ros::Subscriber sub3 = nh.subscribe("cluster_3", 1, cloud3_cb);
@@ -240,31 +248,88 @@ int main(int argc, char** argv) {
 	ros::spin();
 }
 
-void publish_cloud(int label, std::vector<float> bbox)
-{
+/*void publish_boxes() {
 	visualization_msgs::Marker points, line_strip, line_list;
+	visualization_msgs::MarkerArray marker_array;
+	points.header.frame_id = line_strip.header.frame_id = line_list.header.frame_id = "/body_link";
+	points.header.stamp = line_strip.header.stamp = line_list.header.stamp = ros::Time::now();
+	points.ns = line_strip.ns = line_list.ns = "points_and_lines";
+	points.action = line_strip.action = line_list.action = visualization_msgs::Marker::ADD;
+	points.pose.orientation.w = line_strip.pose.orientation.w = line_list.pose.orientation.w = 1.0;
 
+	points.type=visualization_msgs::Marker::POINTS;
+	line_strip.type=visualization_msgs::Marker::LINE_STRIP;
+	line_strip.type=visualization_msgs::Marker::LINE_LIST;
+
+	points.id = 0;
 	line_strip.id = 1;
 	line_list.id = 2;
 
-	line_strip.scale.x = 0.1;
-	line_list.scale.x = 0.1;
+    // POINTS markers use x and y scale for width/height respectively
+    points.scale.x = 0.2;
+    points.scale.y = 0.2;
 
-	// Line strip is blue
-	line_strip.color.b = 1.0;
-	line_strip.color.a = 1.0;
+    // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
+    line_strip.scale.x = 0.1;
+    line_list.scale.x = 0.1;
 
-	// Line list is red
-	line_list.color.r = 1.0;
-	line_list.color.a = 1.0;
 
-	for(int i=0;i<5;i++)
-	{
-		geometry_msgs::Point p;
-		//p.x=bbox.at(i).x;
-		//p.y=bbox.at(i).y;
-		//p.z=0.0;
-	}
+
+    // Points are green
+    points.color.g = 1.0f;
+    points.color.a = 1.0;
+
+    // Line strip is blue
+    line_strip.color.b = 1.0;
+    line_strip.color.a = 1.0;
+
+    // Line list is red
+    line_list.color.r = 1.0;
+    line_list.color.a = 1.0;
+
+
+	//0=xmin
+	//1=xmax
+	//2=ymin
+	//3=ymax
+
+for(int i=0; i<bbox_holder.size(); i++)
+{
+	std::vector<float> bbox(bbox_holder.at(0));
+	geometry_msgs::Point plr, pll, pur, pul;
+	pll.x=bbox.at(0);
+	pll.y=bbox.at(2);
+	pll.z=0;
+
+	plr.x=bbox.at(1);
+	plr.y=bbox.at(2);
+	plr.z=0;
+
+	pur.x=bbox.at(1);
+	pur.y=bbox.at(3);
+	pur.z=0;
+
+	pul.x=bbox.at(0);
+	pul.y=bbox.at(3);
+	pul.z=0;
+	points.points.push_back(pll);
+	points.points.push_back(plr);
+	points.points.push_back(pur);
+	points.points.push_back(pul);
+	points.points.push_back(pll);
+
+	line_strip.points.push_back(pll);
+	line_strip.points.push_back(plr);
+	line_strip.points.push_back(pur);
+	line_strip.points.push_back(pul);
+	line_strip.points.push_back(pll);
+	marker_array.markers.push_back(line_strip);
 
 }
+
+
+
+}*/
+
+
 
