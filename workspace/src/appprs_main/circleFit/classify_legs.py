@@ -8,7 +8,7 @@ import pickle
 def handle_classify_legs(req):
     print "Classifying features: %s" % req.features
     scaled_features = classifier.data_scaler.transform(req.features)
-    label = classifier.predict(scaled_features)
+    label = classifier.predict(scaled_features)[0]
     print "Label: %s" % label
     return ClassifyLegsResponse(label)
 
@@ -19,6 +19,6 @@ def classify_legs_server():
     rospy.spin()
 
 if __name__ == "__main__":
-	with open('trained_leg_svm_classifier.pkl', 'r') as f:
-	    classifier = pickle.load(f)
+    with open('trained_leg_svm_classifier.pkl', 'r') as f:
+        classifier = pickle.load(f)
     classify_legs_server()
