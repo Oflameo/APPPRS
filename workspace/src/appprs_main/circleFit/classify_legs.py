@@ -6,10 +6,10 @@ from sklearn.svm import LinearSVC
 import pickle
 
 def handle_classify_legs(req):
-    print "Classifying features: %s" % req.features[0]
-    scaled_features = classifier.data_scaler.transform(req.features)
-    label = 1
-    #classifier.predict(scaled_features)[0]
+    features = list(req.features.data)
+    print "Classifying features: %s" % features
+    scaled_features = classifier.data_scaler.transform(features)
+    label = classifier.predict(scaled_features)[0]
     print "Label: %s" % label
     return ClassifyLegsResponse(label)
 
