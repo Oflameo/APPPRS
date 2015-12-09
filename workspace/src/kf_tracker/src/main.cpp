@@ -171,16 +171,25 @@ void KFT(const std_msgs::Float32MultiArray ccs)
 
 /* Naive version without using kalman filter */
 objID.clear();//Clear the objID vector
+
+// Copy clusterCenters
+std::vector<geometry_msgs::Point> copyOfClusterCenters(clusterCenters);
+
     for(int filterN=0;filterN<6;filterN++)
     {
         std::vector<float> distVec;
         for(int n=0;n<6;n++)
         {
-            distVec.push_back(euclidean_distance(prevClusterCenters[filterN],clusterCenters[n]));
+            distVec.push_back(euclidean_distance(prevClusterCenters[filterN],copyOfClusterCenters[n]));
         }
        
       // cout<<"distVec[="<<distVec[0]<<","<<distVec[1]<<","<<distVec[2]<<","<<distVec[3]<<","<<distVec[4]<<","<<distVec[5]<<"\n";
-        objID.push_back(std::distance(distVec.begin(),min_element(distVec.begin(),distVec.end())));
+        int ID=std::distance(distVec.begin(),min_element(distVec.begin(),distVec.end()));
+        objID.push_back(ID);
+        copyOfClusterCenters[ID].x=100000;
+        copyOfClusterCenters[ID].y=10000;
+        copyOfClusterCenters[ID].z=10000;
+
        // cout<<"MinD for filter"<<filterN<<"="<<*min_element(distVec.begin(),distVec.end())<<"\n";
     
     }
@@ -300,7 +309,7 @@ if (firstFrame)
 
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setClusterTolerance (0.08); 
+  ec.setClusterTolerance (0.2); 
   ec.setMinClusterSize (10);
   ec.setMaxClusterSize (600);
   ec.setSearchMethod (tree);
