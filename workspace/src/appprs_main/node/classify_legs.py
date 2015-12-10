@@ -11,6 +11,7 @@ def handle_classify_legs(req):
     features = req.features.data
     #print "Classifying features: %s" % [str(f) for f in features]
     try:
+        # classifier.data_scaler is a monkey-patched sklearn.preprocessing.StandardScaler.  Lol.
         scaled_features = classifier.data_scaler.transform(features)
         label = classifier.predict(scaled_features)[0]
         print "Label: %s" % label
