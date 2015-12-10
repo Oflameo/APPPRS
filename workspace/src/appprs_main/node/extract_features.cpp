@@ -27,11 +27,13 @@ ros::ServiceClient* client_ptr;
 ros::Publisher bbox_pub;
 std::vector<std::vector<float>> bbox_holder;
 int MAX_NUMBER_CLUSTERS = 10;
+std::vector<float> humanity;
 
 void publish_boxes();
 
 int get_features(const sensor_msgs::PointCloud2ConstPtr& input,
 		const int cloud_number, std::vector<float> &bbox) {
+
 	//std::cout<<"started get_features function"<<std::endl;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud(
 			new pcl::PointCloud<pcl::PointXYZ>);
@@ -156,7 +158,7 @@ int get_features(const sensor_msgs::PointCloud2ConstPtr& input,
 	features.data.push_back(avg_curve * SCALEME);	//mean curvature of object
 	features.data.push_back(angle_avg * SCALEME);//mean angle between consecutive points
 	//std::cout<<"multi_array_worked"<<std::endl;
-	if (0) {
+	if (1) {
 		myfile << ros::Time::now() << ',' << cloud_number << ',';
 		for (int i = 0; i < 13; i++) {
 
@@ -169,7 +171,19 @@ int get_features(const sensor_msgs::PointCloud2ConstPtr& input,
 
 	//std::cout << "call service" << std::endl;
 	srv.request.features = features;
-	int lab = client_ptr->call(srv);
+	client_ptr->call(srv);
+	int lab = srv.response.label;
+
+	float this_human = humanity.at(cloud_number);
+
+	if (lab == 1)
+	{
+		humanity.at(cloud_number)=std::min(std::max(this_human*1.1, .05), .95);
+	}
+	else if(lab == 0)
+	{
+		humanity.at(cloud_number)=std::min(std::max(this_human*0.9, .05), .95);
+	}
 
 	//Calcluate bounding box around point
 	bbox.push_back(min_x);
@@ -177,20 +191,23 @@ int get_features(const sensor_msgs::PointCloud2ConstPtr& input,
 	bbox.push_back(min_y);
 	bbox.push_back(max_y);
 
-	///Hackashack to see if labels will change colors
-	if (cloud_number>2.5)
-		lab=0;
-	else
-		lab=1;
-
-	bbox.push_back((float) lab);
+	if (humanity.at(cloud_number)>0.5)
+	{
+		bbox.push_back((float) 1);
+	}
+	else if (humanity.at(cloud_number)<.5)
+	{
+		bbox.push_back((float) 0);
+	}
 
 	bbox_holder.at(cloud_number) = bbox;
 
 	//std::cout << "service called successfully" << std::endl;
+	if (Size != 0) {
+		std::cout << "cloud number: " << cloud_number << "  label: " << lab
+				<< std::endl;
+	}
 
-	std::cout << "cloud number: " << cloud_number << "label: " << lab
-			<< std::endl;
 	publish_boxes();
 	return lab;
 
@@ -242,9 +259,15 @@ int main(int argc, char** argv) {
 	bbox_pub = nh.advertise<visualization_msgs::MarkerArray>("bbox_lines", 10);
 
 	std::vector<float> hbox_filler;
+	//.05, 0.95
+	float human = .49;
 
 	while (bbox_holder.size() < MAX_NUMBER_CLUSTERS) {
 		bbox_holder.push_back(hbox_filler);
+	}
+
+	while (humanity.size() < MAX_NUMBER_CLUSTERS) {
+		humanity.push_back(human);
 	}
 
 	//std::cout<<"about to initialize service client"<<std::endl;
@@ -326,7 +349,7 @@ void publish_boxes() {
 
 		if (bbox.size() > 4) {
 
-			cout<<"bbox cluster label:" <<bbox.at(4)<<std::endl;
+			//cout<<"bbox cluster label:" <<bbox.at(4)<<std::endl;
 
 			if (bbox.at(4) == 1) {
 				points.color.b = 0.0;
@@ -349,8 +372,8 @@ void publish_boxes() {
 				line_strip.color.b = 1.0;
 				line_strip.color.a = 1.0;
 			}
-		//	std::cout << "starting to build bbox object" << j << " ,bbox has: "
-		//			<< bbox.size() << "elemdnts" << std::endl;
+			//	std::cout << "starting to build bbox object" << j << " ,bbox has: "
+			//			<< bbox.size() << "elemdnts" << std::endl;
 			geometry_msgs::Point plr, pll, pur, pul;
 			float box_increase = .1;
 			//xmin
@@ -396,11 +419,21 @@ void publish_boxes() {
 			line_strip.points.push_back(pul);
 			line_strip.points.push_back(pll);
 
+			if (bbox.at(0)==bbox.at(2))
+			{
+				line_strip.color.a=0;
+				points.color.a=0;
+			}
+			else
+			{
+				line_strip.color.a=1;
+				points.color.a=1;
+			}
+
 			marker_array.markers.push_back(line_strip);
 			marker_array.markers.push_back(points);
 			//marker_array.markers.push_back(line_list);
-		} else
-		{
+		} else {
 			//	std::cout << "bbox object: " << j << "is too small" << std::endl;
 		}
 
