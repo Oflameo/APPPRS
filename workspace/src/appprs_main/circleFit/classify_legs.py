@@ -8,8 +8,8 @@ import numpy as np
 
 def handle_classify_legs(req):
     features = np.array(req.features.data)
-    features[features == -inf] = 0
-    features[features == inf] = 0
+    features[features == -np.inf] = 0
+    features[features == np.inf] = 0
     features[features == np.nan] = 0
     print "Classifying features: %s" % features
     scaled_features = classifier.data_scaler.transform(features)

@@ -96,11 +96,11 @@ appprs_main  ${OpenCV_LIBRARIES}
 catkin_install_python(PROGRAMS circleFit/classify_legs.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-add_executable(classify_legs_client src/classify_legs_client.cpp)
-target_link_libraries(classify_legs_client ${catkin_LIBRARIES}
-${PCL_COMMON_LIBRARIES}
-${PCL_IO_LIBRARIES})
-add_dependencies(classify_legs_client appprs_main_generate_gencpp)
+#add_executable(classify_legs_client src/classify_legs_client.cpp)
+#target_link_libraries(classify_legs_client ${catkin_LIBRARIES}
+#${PCL_COMMON_LIBRARIES}
+#${PCL_IO_LIBRARIES})
+#add_dependencies(classify_legs_client appprs_main_generate_gencpp)
 
 add_executable(extract_features node/extract_features.cpp)
 target_link_libraries(extract_features ${catkin_LIBRARIES}
