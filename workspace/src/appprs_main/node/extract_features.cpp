@@ -326,7 +326,7 @@ void publish_boxes() {
 
 		if (bbox.size() > 4) {
 
-			cout<<"label:" <<bbox.at(4)<<std::endl;
+			cout<<"bbox cluster label:" <<bbox.at(4)<<std::endl;
 
 			if (bbox.at(4) == 1) {
 				points.color.b = 0.0;

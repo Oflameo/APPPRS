@@ -8,11 +8,11 @@ import pickle
 
 def handle_classify_legs(req):
     features = req.features.data
-    print "Classifying features: %s" % features
+    #print "Classifying features: %s" % [str(f) for f in features]
     try:
         scaled_features = classifier.data_scaler.transform(features)
         label = classifier.predict(scaled_features)[0]
-        print "Label: %s" % label
+        #print "Label: %s" % label
         return ClassifyLegsResponse(label)
     except ValueError:
         return -1
