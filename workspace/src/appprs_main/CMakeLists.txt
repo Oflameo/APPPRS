@@ -25,7 +25,6 @@ find_package( Boost REQUIRED )
 add_service_files(
    FILES
    ClassifyLegs.srv
-   AddTwoInts.srv
 #     worldToRobot.srv
 #     PcntrlPP.srv
 #     localPP_SRV.srv
