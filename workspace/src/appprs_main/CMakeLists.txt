@@ -92,7 +92,7 @@ appprs_main  ${OpenCV_LIBRARIES}
              ${catkin_LIBRARIES}
 )
 
-catkin_install_python(PROGRAMS circleFit/classify_legs.py
+catkin_install_python(PROGRAMS node/classify_legs.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 #add_executable(classify_legs_client src/classify_legs_client.cpp)
