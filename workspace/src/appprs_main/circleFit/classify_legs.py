@@ -4,9 +4,13 @@ from appprs_main.srv import ClassifyLegs, ClassifyLegsResponse
 #from std_msgs.msg import Float32MultiArray
 from sklearn.svm import LinearSVC
 import pickle
+import numpy as np
 
 def handle_classify_legs(req):
-    features = [float(req.features) for _ in range(13)]
+    features = np.array(req.features.data)
+    features[features == -inf] = 0
+    features[features == inf] = 0
+    features[features == np.nan] = 0
     print "Classifying features: %s" % features
     scaled_features = classifier.data_scaler.transform(features)
     label = classifier.predict(scaled_features)[0]
