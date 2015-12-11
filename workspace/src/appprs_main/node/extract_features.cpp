@@ -158,14 +158,7 @@ int get_features(const sensor_msgs::PointCloud2ConstPtr& input,
 	features.data.push_back(avg_curve * SCALEME);	//mean curvature of object
 	features.data.push_back(angle_avg * SCALEME);//mean angle between consecutive points
 	//std::cout<<"multi_array_worked"<<std::endl;
-	if (1) {
-		myfile << ros::Time::now() << ',' << cloud_number << ',';
-		for (int i = 0; i < 13; i++) {
 
-			myfile << std::setprecision(5) << features.data[i] << ',';
-		}
-		myfile << std::endl;
-	}
 	//std::cout<<"make srv"<<std::endl;
 	appprs_main::ClassifyLegs srv;
 
@@ -191,12 +184,16 @@ int get_features(const sensor_msgs::PointCloud2ConstPtr& input,
 	bbox.push_back(min_y);
 	bbox.push_back(max_y);
 
+	int filtered_lab=-1;
+
 	if (humanity.at(cloud_number)>0.5)
 	{
+		filtered_lab=1;
 		bbox.push_back((float) 1);
 	}
 	else if (humanity.at(cloud_number)<.5)
 	{
+		filtered_lab=0;
 		bbox.push_back((float) 0);
 	}
 
@@ -209,6 +206,20 @@ int get_features(const sensor_msgs::PointCloud2ConstPtr& input,
 	}
 
 	publish_boxes();
+
+
+
+
+	if (0) {
+		myfile << ros::Time::now() << ',' << cloud_number << ',';
+		std::cout<<"print: "<<std::endl;
+		for (int i = 0; i < 13; i++) {
+
+			myfile << std::setprecision(5) << features.data[i] << ',';
+		}
+		myfile<<lab<<","<<filtered_lab<<std::endl;
+	}
+
 	return lab;
 
 }
@@ -275,7 +286,7 @@ int main(int argc, char** argv) {
 			"classify_legs");
 	client_ptr = &client;
 
-	myfile.open("features.csv");
+	myfile.open("final_features.csv");
 
 	// Create a ROS subscriber for the input point cloud
 	//std::cout<<"making subscribers"<<std::endl;
