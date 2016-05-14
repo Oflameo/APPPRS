@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <appprs_main/ClassifyLegs.h>
 #include <std_msgs/Float32MultiArray.h>
+#include "boost/shared_ptr.hpp"
+
 std::ofstream myfile;
 ros::ServiceClient* client_ptr;
 ros::Publisher bbox_pub;
