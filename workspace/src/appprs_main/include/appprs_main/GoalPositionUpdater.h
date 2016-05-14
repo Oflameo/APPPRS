@@ -34,6 +34,8 @@ private:
   ros::Publisher global_path_publisher_, local_path_publisher_;
   ros::Publisher steer_command_publisher_;
   ros::Publisher speed_command_publisher_;
+  ros::Publisher car_heading_pub_;
+  ros::Publisher waypoint_heading_pub_;
   ros::Subscriber goal_subscriber_;
   ros::Subscriber joy_subscriber_;
   Eigen::Vector3d last_goal_, current_goal_;
