@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
+<<<<<<< HEAD
   
   <gazebo>
     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
@@ -7,6 +8,9 @@
     </plugin>
   <gazebo>
   
+=======
+  <-- from http://answers.ros.org/question/9491/how-can-i-simulate-ackermann-steering-in-gazebo/ -->
+>>>>>>> master
   <model name='ackermann'>
       <pose>0 0 5 0 -0 0</pose>
       <link name='base'>
