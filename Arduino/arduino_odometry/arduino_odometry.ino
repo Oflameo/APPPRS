@@ -22,6 +22,7 @@
 
 #include <Servo.h>
 
+int imu_on=1;
 
 const int MPU=0x68;  // I2C address of the MPU-60D0
 const int tachPinA = 2;
@@ -65,7 +66,7 @@ int speedRange = 90;  //rotational range of servo, from full CW to full CCW
 int speedDemand;
 //************************
 
-  int maxPower = 30;
+int maxPower = 30;
 
 
 
@@ -137,11 +138,14 @@ ros::Subscriber<std_msgs::Float32> speedSub("speedCommand", speedCommand_cb);
 
 void setup()
 {
-  Wire.begin();
-  Wire.beginTransmission(MPU);
-  Wire.write(0x6B);  // PWR_MGMT_1 register
-  Wire.write(0);     // set to zero (wakes up the MPU-6050)
-  Wire.endTransmission(true);
+  if(imu_on)
+  {
+    Wire.begin();
+    Wire.beginTransmission(MPU);
+    Wire.write(0x6B);  // PWR_MGMT_1 register
+    Wire.write(0);     // set to zero (wakes up the MPU-6050)
+    Wire.endTransmission(true);
+  }
   Serial.begin(57600);
   pinMode(7,OUTPUT); //set them to digital inputs and outputs
   pinMode(3,INPUT);
@@ -180,6 +184,8 @@ void setup()
   delay(3000);
   
   // ** Sample gyro for set number of cycles **
+  if(imu_on)
+  {
   for (int i = 0; i < calCycles; i++) {
     Wire.beginTransmission(MPU);
     Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
@@ -201,6 +207,7 @@ void setup()
     GyXcal += GyX;
     GyYcal += GyY;
     GyZcal += GyZ;
+  }
   }
   
   AcXcal /= calCycles;
@@ -292,6 +299,8 @@ void loop()
   */
   
   // **** Read IMU ****
+  if(imu_on)
+  {
     Wire.beginTransmission(MPU);
     Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
     Wire.endTransmission(false);
@@ -312,6 +321,7 @@ void loop()
     GyY = GyY - GyYcal;
     GyZ = GyZ - GyZcal;
 
+  }
   
   test.data[1]=GyX;
   test.data[2]=GyY;
