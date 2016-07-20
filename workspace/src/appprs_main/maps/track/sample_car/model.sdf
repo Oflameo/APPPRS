@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
-<<<<<<< HEAD
+
   
   <gazebo>
     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
@@ -545,7 +545,6 @@
           </limit>
         </axis>
       </joint>
-    
     
     
   </model>
