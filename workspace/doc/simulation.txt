@@ -16,3 +16,25 @@ Run
 - roslaunch appprs_main gazebo_ny-track.launch 
 - roslaunch pr2_gazebo pr2.launch
 - roslaunch pr2_teleop teleop_keyboard.launch
+
+
+run notes 2016-07
+
+-----sample robot with gazebo integration:
+        source = http://www.generationrobots.com/en/content/75-gazebo-and-ros
+roslaunch mybot_gazebo/launch/mybot_world.launch 
+rostopic pub -r 30 mybot/leftWheel_effort_controller/command std_msgs/Float64 "data: 100.5" 
+rostopic pub /mybot/cmd_vel geometry_msgs/Twist -l -- '[2.0, 0.0, 0.0]' '[0.0, 0.0, 1.8]'
+rqt
+
+-----ackermann steering cart with video camera:
+roslaunch appprs_main ny_real_track.launch
+
+-----paths:
+fix mybot
+restart with pr2
+build from the ground up
+Husky UR5 Robot
+
+
+
