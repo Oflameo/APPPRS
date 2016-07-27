@@ -1,3 +1,5 @@
- 
-ln -s /home/parallels/appprs/workspace/src/appprs_main/maps/models ~/.gazebo/models
+#!/bin/bash
 
+path=`pwd`
+ln -s ${past}/maps/models ~/.gazebo/models
+ls -l ~/.gazebo/models
