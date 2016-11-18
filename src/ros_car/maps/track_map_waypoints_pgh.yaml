@@ -1,0 +1,219 @@
+waypoints:
+  - name: P1
+    frame_id: map
+    pose:
+      position:
+        x: -6.29999876022
+        y: 0.499998092651
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 1.0
+        w: 6.12323399574e-17
+  - name: P2
+    frame_id: map
+    pose:
+      position:
+        x: -12.5999946594
+        y: 0.200001239777
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.998067561072
+        w: -0.0621381005163
+  - name: P3
+    frame_id: map
+    pose:
+      position:
+        x: -19.3999958038
+        y: 2.10000181198
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.937885121952
+        w: 0.346945958358
+  - name: P4
+    frame_id: map
+    pose:
+      position:
+        x: -26.8999958038
+        y: 3.09999990463
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.954998035978
+        w: -0.296612122608
+  - name: P5
+    frame_id: map
+    pose:
+      position:
+        x: -33.5999984741
+        y: -0.100001811981
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.999742097555
+        w: 0.0227098740008
+  - name: P6
+    frame_id: map
+    pose:
+      position:
+        x: -39.1999969482
+        y: 3.40000247955
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.681452068498 
+        w: 0.731862745561
+  - name: P7
+    frame_id: map
+    pose:
+      position:
+        x: -18.6999988556
+        y: 5.79999923706
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: -0.289784254006
+        w: 0.957091994601
+  - name: P8
+    frame_id: map
+    pose:
+      position:
+        x: -32.1999969482
+        y: 7.89999914169
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.0
+        w: 1.0
+  - name: P9
+    frame_id: map
+    pose:
+      position:
+        x: -10.3999996185
+        y: 4.4000005722
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.413215071985 
+        w: 0.910633463192
+  - name: P10
+    frame_id: map
+    pose:
+      position:
+        x: -1.7999997139
+        y: 4.69999790192
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: -0.2897836221
+        w: 0.957092185927
+  - name: P11
+    frame_id: map
+    pose:
+      position:
+        x: 5.49999952316
+        y: 4.89999961853
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.160182713689
+        w: 0.987087381256
+  - name: P12
+    frame_id: map
+    pose:
+      position:
+        x: 13.4000015259
+        y: 6.30000114441
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.0
+        w: 1.0
+  - name: P13
+    frame_id: map
+    pose:
+      position: 
+        x: 22.5999984741
+        y: 6.99999952316
+        z: 0.0
+      orientation: 
+        x: 0.0
+        y: 0.0
+        z: -0.437135809534
+        w: 0.899395510342
+  - name: P14
+    frame_id: map
+    pose:
+      position: 
+        x: 23.700006485
+        y: 1.89999985695
+        z: 0.0
+      orientation: 
+        x: 0.0
+        y: 0.0
+        z: 0.913501094991
+        w: -0.406836268603
+  - name: P15
+    frame_id: map
+    pose:
+      position: 
+        x: 17.2999973297
+        y: -0.799996852875
+        z: 0.0
+      orientation: 
+        x: 0.0
+        y: 0.0
+        z: 1.0
+        w: 0.0
+  - name: P16
+    frame_id: map
+    pose: 
+      position: 
+        x: 6.70000553131
+        y: -0.199996948242
+        z: 0.0
+      orientation: 
+        x: 0.0
+        y: 0.0
+        z: 1.0
+        w: 0.0
+  - name: P17
+    frame_id: map
+    pose: 
+      position: 
+        x: -2.69999599457
+        y: 0.499998092651
+        z: 0.0
+      orientation: 
+        x: 0.0
+        y: 0.0
+        z: 1.0
+        w: 0.0
+
+trajectories:
+  - name: race_track
+    waypoints:
+    - P2
+    - P4
+    - P6
+    - P8
+    - P10
+    - P12
+    - P14
+    - P16
+    - P17
+

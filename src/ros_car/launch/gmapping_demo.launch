@@ -1,0 +1,13 @@
+<launch>
+
+  <include file="$(find ros_car)/launch/ros_car_real.launch" />
+
+  <include file="$(find ros_car)/launch/includes/gmapping.launch.xml"/>
+
+  <arg name="custom_param_file" default="$(find ros_car)/param/dummy.yaml"/>
+  
+  <include file="$(find ros_car)/launch/includes/move_base.launch.xml">
+     <arg name="custom_param_file" value="$(arg custom_param_file)"/>
+  </include>
+
+</launch>

@@ -1,0 +1,46 @@
+<launch>
+
+  <!-- include file="$(find ros_car)/launch/sim.launch" /-->
+  <include file="$(find ros_car)/launch/ros_car_real.launch" />
+
+  <!-- Map server  -->
+  <arg name="map_file" default="$(find ros_car)/maps/track_map_pgh.yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+
+  <arg name="waypoints_filename" default="$(find ros_car)/maps/track_map_waypoints_pgh.yaml"/>
+  
+  <node pkg="ros_car" name="waypoint_provider" type="waypoint_provider">
+    <param name="filename" value="$(arg waypoints_filename)"/>
+  </node>
+
+  <arg name="frequency"     default="5.0"/>
+  <arg name="close_enough"  default="2.0"/>
+  <arg name="goal_timeout"  default="5*60.0"/>
+  
+  <node name="waypoints_navi" pkg="ros_car" type="waypoints_navi_node" output="screen">
+    <param name="frequency"    value="$(arg frequency)"/>
+    <param name="close_enough" value="$(arg close_enough)"/>
+    <param name="goal_timeout" value="$(arg goal_timeout)"/>
+  </node>
+
+  <arg name="initial_pose_x" default="0.0"/>
+  <arg name="initial_pose_y" default="0.0"/>
+  <arg name="initial_pose_a" default="0.0"/>
+  <include file="$(find ros_car)/launch/includes/amcl.launch.xml">
+    <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
+    <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
+    <arg name="initial_pose_a" value="$(arg initial_pose_a)"/>
+  </include>
+
+  <arg name="custom_param_file" default="$(find ros_car)/param/dummy.yaml"/>
+  
+  <include file="$(find ros_car)/launch/includes/move_base.launch.xml">
+     <arg name="custom_param_file" value="$(arg custom_param_file)"/>
+  </include>
+
+  <!--node name="rviz" pkg="rviz" type="rviz" args="-d /home/jd/.rviz/ros_car_rviz_config.rviz" /-->
+
+  <!-- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" args="" /> -->
+
+</launch>
+

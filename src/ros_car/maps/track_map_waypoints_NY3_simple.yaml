@@ -1,0 +1,109 @@
+waypoints:
+  - name: P1
+    frame_id: map
+    pose:
+      position:
+        x: 5.56077384949
+        y: 0.0651988983154
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.0
+        w: 1.0
+  - name: P2
+    frame_id: map
+    pose:
+      position: 
+        x: 6.90087842941
+        y: -0.925149798393
+        z: 0.0
+      orientation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0416746784765
+        w: 0.999131233209
+  - name: P3
+    frame_id: map
+    pose:
+      position: 
+        x: 6.90087842941
+        y: -0.925149798393
+        z: 0.0
+      orientation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0416746784765
+        w: 0.999131233209
+  - name: P4
+    frame_id: map
+    pose:
+      position: 
+        x: 4.58294916153
+        y: 7.66301965714
+        z: 0.0
+      orientation: 
+        x: 0.0
+        y: 0.0
+        z: 0.993277121138
+        w: 0.115760790526
+  - name: P5
+    frame_id: map
+    pose:
+      position: 
+        x: -2.69232106209
+        y: 18.0382213593
+        z: 0.0
+      orientation: 
+        x: 0.0
+        y: 0.0
+        z: 0.673587699006
+        w: 0.739107307329
+  - name: P6
+    frame_id: map
+    pose:
+      position: 
+        x: 6.46349525452
+        y: 22.3507289886
+        z: 0.0
+      orientation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0393872268897
+        w: 0.999224022108
+  - name: P7
+    frame_id: map
+    pose:
+      position: 
+        x: -5.34939193726
+        y: 14.1807594299
+        z: 0.0
+      orientation: 
+        x: 0.0
+        y: 0.0
+        z: -0.716192063631
+        w: 0.69790323684
+  - name: P8
+    frame_id: map
+    pose:
+      position: 
+        x: -3.04707193375
+        y: 0.132073968649
+        z: 0.0
+      orientation: 
+        x: 0.0
+        y: 0.0
+        z: 0.0202266245903
+        w: 0.999795420903
+
+
+trajectories:
+  - name: race_track
+    waypoints:
+    - P1
+    - P2
+    - P3
+    - P4
+    - P6
+    - P7
+    - P8

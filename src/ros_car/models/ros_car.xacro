@@ -1,0 +1,645 @@
+<?xml version="1.0"?>
+
+<robot name="ros_car" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<xacro:property name="PI" value="3.1415926535897931"/>
+	<xacro:property name="DEG_2_RAD" value="${PI/180}"/>
+	<xacro:property name="INCH_2_METER" value="0.0254"/>
+	<xacro:property name="LB_2_KG" value="0.453592"/>
+
+	<!-- Length [inch], Mass [pound] -->
+
+	<xacro:property name="steer_link_diameter" value="1" />
+	<xacro:property name="steer_link_length" value="3" />
+	<xacro:property name="steer_link_mass" value="0.5" />
+
+	<xacro:property name="chassis_width" value="16" /> 
+	<xacro:property name="chassis_length" value="35.25" />
+	<xacro:property name="chassis_depth" value="3" />
+	<xacro:property name="chassis_mass" value="110" /> 
+
+	<xacro:property name="wheel_diameter" value="10" />
+	<xacro:property name="wheel_width" value="3" />
+	<xacro:property name="wheel_mass" value="2.5" />
+
+	<xacro:property name="laser_x" value="12" />
+	<xacro:property name="laser_z" value="6" />
+
+	<xacro:property name="max_base_velocity" value="1" />	<!-- m/s -->
+	<xacro:property name="max_wheel_joint_velocity" value="${max_base_velocity/(wheel_diameter/2)}" /> <!-- rad/s -->
+	
+	<xacro:property name="max_steer_angle" value="${30*DEG_2_RAD}" />
+	<xacro:property name="max_wheel_joint_effort" value="20" />
+	<xacro:property name="wheel_joint_friction" value="0.0" />
+	<xacro:property name="wheel_joint_damping" value="0.00" />
+
+	<xacro:property name="wheel_stiffness" value="1000.0" />
+	<xacro:property name="wheel_damping" value="1.0" />
+	<xacro:property name="wheel_mu" value="1.0" />
+	<xacro:property name="wheel_mu2" value="1.0" />
+	<xacro:property name="wheel_slip1" value="0.0" />
+	<xacro:property name="wheel_slip2" value="0.0" />
+
+	<xacro:property name="max_steer_joint_effort" value="35" />
+	<xacro:property name="max_steer_joint_velocity" value="${120*DEG_2_RAD}" />
+	<xacro:property name="steer_joint_friction" value="1" />
+	<xacro:property name="steer_joint_damping" value="1" />
+
+	<xacro:property name="min_turn_radius" value="0.5" />
+	
+	<xacro:property name="min_laser_angle" value="${-100*DEG_2_RAD}" />
+    <xacro:property name="max_laser_angle" value="${100*DEG_2_RAD}" />
+
+	<!--
+	<xacro:property name="min_laser_angle" value="-2.2689" />
+    <xacro:property name="max_laser_angle" value="2.2689" />
+	-->
+	
+
+ 
+
+	<!-- Coordinate convention: x-forward, y-left, z-up -->
+
+	<link name="base_link">
+
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<box size="${chassis_length*INCH_2_METER} ${chassis_width*INCH_2_METER} ${chassis_depth*INCH_2_METER}"/>
+			</geometry>
+		</collision>
+
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<box size="${chassis_length*INCH_2_METER} ${chassis_width*INCH_2_METER} ${chassis_depth*INCH_2_METER}"/>
+			</geometry>
+		</visual>
+
+		<inertial>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<mass value="${chassis_mass*LB_2_KG}"/>
+			<inertia
+				ixx="${chassis_mass/12.0*(chassis_width*chassis_width + chassis_depth*chassis_depth)*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+				iyy="${chassis_mass/12.0*(chassis_length*chassis_length + chassis_depth*chassis_depth)*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+				izz="${chassis_mass/12.0*(chassis_width*chassis_width + chassis_length*chassis_length)*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+				ixy="0.0" 
+				ixz="0.0"
+				iyz="0.0"
+			/>
+		</inertial>
+
+	</link>
+
+	<gazebo reference="base_link">
+		<material>Gazebo/Gray</material>
+	</gazebo>
+
+	<!-- -->
+
+	<link name="rear_left_axle_link">
+
+		<collision>
+		  <origin xyz="0 ${steer_link_length*INCH_2_METER/2} 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+				<cylinder radius="${steer_link_diameter*INCH_2_METER/2}" length="${steer_link_length*INCH_2_METER}" />
+		  </geometry>
+		</collision>
+
+		<visual>
+		  <origin xyz="0 ${steer_link_length*INCH_2_METER/2} 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+			  <cylinder radius="${steer_link_diameter*INCH_2_METER/2}" length="${steer_link_length*INCH_2_METER}" />
+		  </geometry>
+		</visual>
+
+		<inertial>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <mass value="${steer_link_mass*LB_2_KG}"/>
+		  <inertia
+			  ixx="${steer_link_mass/12*(3*(steer_link_diameter/2)*(steer_link_diameter/2) + steer_link_length*steer_link_length)*LB_2_KG*INCH_2_METER*INCH_2_METER}" 
+			  iyy="${steer_link_mass/12*(3*(steer_link_diameter/2)*(steer_link_diameter/2) + steer_link_length*steer_link_length)*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  izz="${steer_link_mass/2*((steer_link_diameter/2)*(steer_link_diameter/2))*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  ixy="0.0" 
+			  ixz="0.0"
+			  iyz="0.0"
+		   />
+		</inertial>
+
+	</link>
+
+	<gazebo reference="rear_left_axle_link">
+		<material>Gazebo/Gray</material>
+	</gazebo>
+
+	<joint name="rear_left_axle_joint" type="fixed">
+		<parent link="base_link"/>
+		<child link="rear_left_axle_link"/>
+		<origin xyz="${-(chassis_length-wheel_width)*INCH_2_METER/2} ${chassis_width*INCH_2_METER/2} 0" />
+		<axis xyz="0 1 0" />
+	</joint>
+
+	<!-- -->
+
+	<link name="rear_right_axle_link">
+
+		<collision>
+		  <origin xyz="0 ${-steer_link_length*INCH_2_METER/2} 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+				<cylinder radius="${steer_link_diameter*INCH_2_METER/2}" length="${steer_link_length*INCH_2_METER}" />
+		  </geometry>
+		</collision>
+
+		<visual>
+		  <origin xyz="0 ${-steer_link_length*INCH_2_METER/2} 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+			  <cylinder radius="${steer_link_diameter*INCH_2_METER/2}" length="${steer_link_length*INCH_2_METER}" />
+		  </geometry>
+		</visual>
+
+		<inertial>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <mass value="${steer_link_mass*LB_2_KG}"/>
+		  <inertia
+			  ixx="${steer_link_mass/12*(3*(steer_link_diameter/2)*(steer_link_diameter/2) + steer_link_length*steer_link_length)*LB_2_KG*INCH_2_METER*INCH_2_METER}" 
+			  iyy="${steer_link_mass/12*(3*(steer_link_diameter/2)*(steer_link_diameter/2) + steer_link_length*steer_link_length)*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  izz="${steer_link_mass/2*((steer_link_diameter/2)*(steer_link_diameter/2))*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  ixy="0.0" 
+			  ixz="0.0"
+			  iyz="0.0"
+		   />
+		</inertial>
+
+	</link>
+
+	<gazebo reference="rear_right_axle_link">
+		<material>Gazebo/Gray</material>
+	</gazebo>
+
+	<joint name="rear_right_axle_joint" type="fixed">
+		<parent link="base_link"/>
+		<child link="rear_right_axle_link"/>
+		<origin xyz="${-(chassis_length-wheel_width)*INCH_2_METER/2} ${-chassis_width*INCH_2_METER/2} 0" />
+		<axis xyz="0 1 0" />
+	</joint>
+
+	<!-- -->
+
+	<link name="rear_right_wheel">
+
+		<collision>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+				<cylinder radius="${wheel_diameter*INCH_2_METER/2}" length="${wheel_width*INCH_2_METER}" />
+		  </geometry>
+		  <contact_coefficients kp="${wheel_stiffness}" kd="${wheel_damping}" mu="${wheel_mu}" />
+		  <!-- contact_coefficients mu="${wheel_mu}"/ -->
+		  <surface>
+	        <friction>
+	          <ode>
+	            <mu>${wheel_mu}</mu>
+	            <mu2>${wheel_mu2}</mu2>
+	            <slip1>${wheel_slip1}</slip1>
+	            <slip2>${wheel_slip2}</slip2>
+	          </ode>
+	        </friction>
+	        <contact>
+	          <ode>
+	            <kp>${wheel_stiffness}</kp>
+	            <kd>${wheel_damping}</kd>
+	          </ode>
+	        </contact>
+	      </surface>
+		</collision>
+
+		<visual>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+			  <cylinder radius="${wheel_diameter*INCH_2_METER/2}" length="${wheel_width*INCH_2_METER}" />
+		  </geometry>
+		</visual>
+
+		<inertial>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <mass value="${wheel_mass*LB_2_KG}"/>
+		  <inertia
+			  ixx="${wheel_mass/12*(3*(wheel_diameter/2)*(wheel_diameter/2) + wheel_width*wheel_width)*LB_2_KG*INCH_2_METER*INCH_2_METER}" 
+			  iyy="${wheel_mass/12*(3*(wheel_diameter/2)*(wheel_diameter/2) + wheel_width*wheel_width)*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  izz="${wheel_mass/2*((wheel_diameter/2)*(wheel_diameter/2))*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  ixy="0.0" 
+			  ixz="0.0"
+			  iyz="0.0"
+		   />
+		</inertial>
+
+	</link>
+
+	<gazebo reference="rear_right_wheel">
+		<material>Gazebo/Black</material>
+	</gazebo>
+
+	<joint name="rear_right_wheel_joint" type="continuous">
+		<parent link="rear_right_axle_link"/>
+		<child link="rear_right_wheel"/>
+		<origin xyz="0 ${-(steer_link_length+wheel_width/2)*INCH_2_METER} 0" />
+		<axis xyz="0 1 0" />
+		<dynamics friction = "${wheel_joint_friction}" damping = "${wheel_joint_damping}"/>
+		<limit effort="${max_wheel_joint_effort}" velocity="${max_wheel_joint_velocity}" />
+	</joint>
+
+	<!-- -->
+
+	<link name="rear_left_wheel">
+
+		<collision>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+				<cylinder radius="${wheel_diameter*INCH_2_METER/2}" length="${wheel_width*INCH_2_METER}" />
+		  </geometry>
+		  <contact_coefficients kp="${wheel_stiffness}" kd="${wheel_damping}" mu="${wheel_mu}" />
+		  <!-- contact_coefficients mu="${wheel_mu}"/ -->
+		  <surface>
+	        <friction>
+	          <ode>
+	            <mu>${wheel_mu}</mu>
+	            <mu2>${wheel_mu2}</mu2>
+	            <slip1>${wheel_slip1}</slip1>
+	            <slip2>${wheel_slip2}</slip2>
+	          </ode>
+	        </friction>
+	        <contact>
+	          <ode>
+	            <kp>${wheel_stiffness}</kp>
+	            <kd>${wheel_damping}</kd>
+	          </ode>
+	        </contact>
+	      </surface>
+		</collision>
+
+		<visual>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+			  <cylinder radius="${wheel_diameter*INCH_2_METER/2}" length="${wheel_width*INCH_2_METER}" />
+		  </geometry>
+		</visual>
+
+		<inertial>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <mass value="${wheel_mass*LB_2_KG}"/>
+		  <inertia
+			  ixx="${wheel_mass/12*(3*(wheel_diameter/2)*(wheel_diameter/2) + wheel_width*wheel_width)*LB_2_KG*INCH_2_METER*INCH_2_METER}" 
+			  iyy="${wheel_mass/12*(3*(wheel_diameter/2)*(wheel_diameter/2) + wheel_width*wheel_width)*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  izz="${wheel_mass/2*((wheel_diameter/2)*(wheel_diameter/2))*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  ixy="0.0" 
+			  ixz="0.0"
+			  iyz="0.0"
+		   />
+		</inertial>
+
+	</link>
+
+	<gazebo reference="rear_left_wheel">
+		<material>Gazebo/Black</material>
+	</gazebo>
+
+	<joint name="rear_left_wheel_joint" type="continuous">
+		<parent link="rear_left_axle_link"/>
+		<child link="rear_left_wheel"/>
+		<origin xyz="0 ${(steer_link_length+wheel_width/2)*INCH_2_METER} 0" />
+		<axis xyz="0 1 0" />
+		<dynamics friction = "${wheel_joint_friction}" damping = "${wheel_joint_damping}"/>
+		<limit effort="${max_wheel_joint_effort}" velocity="${max_wheel_joint_velocity}" />
+	</joint>
+
+	<!-- -->
+
+	<link name="front_left_steer_link">
+
+		<collision>
+		  <origin xyz="0 ${steer_link_length*INCH_2_METER/2} 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+				<cylinder radius="${steer_link_diameter*INCH_2_METER/2}" length="${steer_link_length*INCH_2_METER}" />
+		  </geometry>
+		</collision>
+
+		<visual>
+		  <origin xyz="0 ${steer_link_length*INCH_2_METER/2} 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+			  <cylinder radius="${steer_link_diameter*INCH_2_METER/2}" length="${steer_link_length*INCH_2_METER}" />
+		  </geometry>
+		</visual>
+
+		<inertial>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <mass value="${steer_link_mass*LB_2_KG}"/>
+		  <inertia
+			  ixx="${steer_link_mass/12*(3*(steer_link_diameter/2)*(steer_link_diameter/2) + steer_link_length*steer_link_length)*LB_2_KG*INCH_2_METER*INCH_2_METER}" 
+			  iyy="${steer_link_mass/12*(3*(steer_link_diameter/2)*(steer_link_diameter/2) + steer_link_length*steer_link_length)*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  izz="${steer_link_mass/2*((steer_link_diameter/2)*(steer_link_diameter/2))*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  ixy="0.0" 
+			  ixz="0.0"
+			  iyz="0.0"
+		   />
+		</inertial>
+
+	</link>
+
+	<gazebo reference="front_left_steer_link">
+		<material>Gazebo/Gray</material>
+	</gazebo>
+
+	<joint name="front_left_steer_joint" type="revolute">
+		<parent link="base_link"/>
+		<child link="front_left_steer_link"/>
+		<origin xyz="${(chassis_length-wheel_width)*INCH_2_METER/2} ${chassis_width*INCH_2_METER/2} 0" />
+		<axis xyz="0 0 1" />
+		<dynamics friction = "${steer_joint_friction}" damping = "${steer_joint_damping}"/>
+		<limit lower="${-max_steer_angle}" upper="${max_steer_angle}" effort="${max_steer_joint_effort}" velocity="${max_steer_joint_velocity}" />
+	</joint>
+
+	<!-- -->
+
+	<link name="front_right_steer_link">
+
+		<collision>
+		  <origin xyz="0 ${-steer_link_length*INCH_2_METER/2} 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+				<cylinder radius="${steer_link_diameter*INCH_2_METER/2}" length="${steer_link_length*INCH_2_METER}" />
+		  </geometry>
+		</collision>
+
+		<visual>
+		  <origin xyz="0 ${-steer_link_length*INCH_2_METER/2} 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+			  <cylinder radius="${steer_link_diameter*INCH_2_METER/2}" length="${steer_link_length*INCH_2_METER}" />
+		  </geometry>
+		</visual>
+
+		<inertial>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <mass value="${steer_link_mass*LB_2_KG}"/>
+		  <inertia
+			  ixx="${steer_link_mass/12*(3*(steer_link_diameter/2)*(steer_link_diameter/2) + steer_link_length*steer_link_length)*LB_2_KG*INCH_2_METER*INCH_2_METER}" 
+			  iyy="${steer_link_mass/12*(3*(steer_link_diameter/2)*(steer_link_diameter/2) + steer_link_length*steer_link_length)*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  izz="${steer_link_mass/2*((steer_link_diameter/2)*(steer_link_diameter/2))*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  ixy="0.0" 
+			  ixz="0.0"
+			  iyz="0.0"
+		   />
+		</inertial>
+
+	</link>
+
+	<gazebo reference="front_right_steer_link">
+		<material>Gazebo/Gray</material>
+	</gazebo>
+
+	<joint name="front_right_steer_joint" type="revolute">
+		<parent link="base_link"/>
+		<child link="front_right_steer_link"/>
+		<origin xyz="${(chassis_length-wheel_width)*INCH_2_METER/2} ${-chassis_width*INCH_2_METER/2} 0" />
+		<axis xyz="0 0 1" />
+		<dynamics friction = "${steer_joint_friction}" damping = "${steer_joint_damping}"/>
+		<limit lower="${-max_steer_angle}" upper="${max_steer_angle}" effort="${max_steer_joint_effort}" velocity="${max_steer_joint_velocity}" />
+	</joint>
+
+	<!-- -->
+
+	<link name="front_left_wheel">
+
+		<collision>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+				<cylinder radius="${wheel_diameter*INCH_2_METER/2}" length="${wheel_width*INCH_2_METER}" />
+		  </geometry>
+		  <contact_coefficients kp="${wheel_stiffness}" kd="${wheel_damping}" mu="${wheel_mu}" />
+		  <!-- contact_coefficients mu="${wheel_mu}"/ -->
+		  <surface>
+	        <friction>
+	          <ode>
+	            <mu>${wheel_mu}</mu>
+	            <mu2>${wheel_mu2}</mu2>
+	            <slip1>${wheel_slip1}</slip1>
+	            <slip2>${wheel_slip2}</slip2>
+	          </ode>
+	        </friction>
+	        <contact>
+	          <ode>
+	            <kp>${wheel_stiffness}</kp>
+	            <kd>${wheel_damping}</kd>
+	          </ode>
+	        </contact>
+	      </surface>
+		</collision>
+
+		<visual>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+			  <cylinder radius="${wheel_diameter*INCH_2_METER/2}" length="${wheel_width*INCH_2_METER}" />
+		  </geometry>
+		</visual>
+
+		<inertial>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <mass value="${wheel_mass*LB_2_KG}"/>
+		  <inertia
+			  ixx="${wheel_mass/12*(3*(wheel_diameter/2)*(wheel_diameter/2) + wheel_width*wheel_width)*LB_2_KG*INCH_2_METER*INCH_2_METER}" 
+			  iyy="${wheel_mass/12*(3*(wheel_diameter/2)*(wheel_diameter/2) + wheel_width*wheel_width)*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  izz="${wheel_mass/2*((wheel_diameter/2)*(wheel_diameter/2))*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  ixy="0.0" 
+			  ixz="0.0"
+			  iyz="0.0"
+		   />
+		</inertial>
+
+	</link>
+
+	<gazebo reference="front_left_wheel">
+		<material>Gazebo/Black</material>
+	</gazebo>
+
+	<joint name="front_left_wheel_joint" type="continuous">
+		<parent link="front_left_steer_link"/>
+		<child link="front_left_wheel"/>
+		<origin xyz="0 ${(steer_link_length+wheel_width/2)*INCH_2_METER} 0" />
+		<axis xyz="0 1 0" />
+		<dynamics friction = "${wheel_joint_friction}" damping = "${wheel_joint_damping}"/>
+		<limit effort="${max_wheel_joint_effort}" velocity="${max_wheel_joint_velocity}" />
+	</joint>
+
+	<!-- -->
+
+	<link name="front_right_wheel">
+
+		<collision>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+				<cylinder radius="${wheel_diameter*INCH_2_METER/2}" length="${wheel_width*INCH_2_METER}" />
+		  </geometry>
+		  <contact_coefficients kp="${wheel_stiffness}" kd="${wheel_damping}" mu="${wheel_mu}" />
+		  <!-- contact_coefficients mu="${wheel_mu}"/ -->
+		  <surface>
+	        <friction>
+	          <ode>
+	            <mu>${wheel_mu}</mu>
+	            <mu2>${wheel_mu2}</mu2>
+	            <slip1>${wheel_slip1}</slip1>
+	            <slip2>${wheel_slip2}</slip2>
+	          </ode>
+	        </friction>
+	        <contact>
+	          <ode>
+	            <kp>${wheel_stiffness}</kp>
+	            <kd>${wheel_damping}</kd>
+	          </ode>
+	        </contact>
+	      </surface>
+		</collision>
+
+		<visual>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <geometry>
+			  <cylinder radius="${wheel_diameter*INCH_2_METER/2}" length="${wheel_width*INCH_2_METER}" />
+		  </geometry>
+		</visual>
+
+		<inertial>
+		  <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+		  <mass value="${wheel_mass*LB_2_KG}"/>
+		  <inertia
+			  ixx="${wheel_mass/12*(3*(wheel_diameter/2)*(wheel_diameter/2) + wheel_width*wheel_width)*LB_2_KG*INCH_2_METER*INCH_2_METER}" 
+			  iyy="${wheel_mass/12*(3*(wheel_diameter/2)*(wheel_diameter/2) + wheel_width*wheel_width)*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  izz="${wheel_mass/2*((wheel_diameter/2)*(wheel_diameter/2))*LB_2_KG*INCH_2_METER*INCH_2_METER}"
+			  ixy="0.0" 
+			  ixz="0.0"
+			  iyz="0.0"
+		   />
+		</inertial>
+
+	</link>
+
+	<gazebo reference="front_right_wheel">
+		<material>Gazebo/Black</material>
+	</gazebo>
+
+	<joint name="front_right_wheel_joint" type="continuous">
+		<parent link="front_right_steer_link"/>
+		<child link="front_right_wheel"/>
+		<origin xyz="0 ${-(steer_link_length+wheel_width/2)*INCH_2_METER} 0" />
+		<axis xyz="0 1 0" />
+		<dynamics friction = "${wheel_joint_friction}" damping = "${wheel_joint_damping}"/>
+		<limit effort="${max_wheel_joint_effort}" velocity="${max_wheel_joint_velocity}" />
+	</joint>
+
+	<!-- -->
+
+	<gazebo>
+
+		<link name="hokuyo_link">
+			<pose>${laser_x*INCH_2_METER} 0 ${laser_z*INCH_2_METER} 0 0 0</pose>
+			<inertial>
+			<mass>0.1</mass>
+			</inertial>
+			<visual name="visual">
+			<geometry>
+			  <mesh>
+				<uri>model://hokuyo/meshes/hokuyo.dae</uri>
+			  </mesh>
+			</geometry>
+			</visual>
+			<collision name="collision-base">
+			<pose>0 0 -0.0145 0 0 0</pose>
+			<geometry>
+			  <box>
+				<size>0.05 0.05 0.041</size>
+			  </box>
+			</geometry>
+			</collision>
+			<collision name="collision-top">
+			<pose>0 0 0.0205 0 0 0</pose>
+			<geometry>
+			  <cylinder>
+				<radius>0.021</radius>
+				<length>0.029</length>
+			  </cylinder>
+			</geometry>
+			</collision>
+			<sensor name="laser" type="ray">
+				<pose>0.01 0 0.0175 0 -0 0</pose>
+				<visualize>false</visualize>
+				<ray>
+				  <scan>
+					<horizontal>
+					  <samples>640</samples>
+					  <resolution>1</resolution>
+					  <min_angle>${min_laser_angle}</min_angle>
+					  <max_angle>${max_laser_angle}</max_angle>
+					</horizontal>
+				  </scan>
+				  <range>
+					<min>0.08</min>
+					<max>30</max>
+					<resolution>0.01</resolution>
+				  </range>
+				</ray> 
+				<plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
+				  <topicName>/scan</topicName>
+				  <frameName>base_link</frameName>
+				</plugin>
+			</sensor>
+		</link>
+
+		<joint name="hokuyo_joint" type="revolute">
+		<child>hokuyo_link</child>
+		<parent>base_link</parent>
+		<axis>
+		<xyz>0 0 1</xyz>
+		<limit>
+		  <upper>0</upper>
+		  <lower>0</lower>
+		</limit>
+		</axis>
+		</joint>
+
+	</gazebo>
+
+	<!-- -->
+
+	<gazebo>
+
+		<plugin name="ros_car_drive_controller" filename="libros_car_drive_plugin.so">
+
+			<alwaysOn>true</alwaysOn>
+			<!-- updateRate>500</updateRate -->
+
+			<leftSteerJoint>front_left_steer_joint</leftSteerJoint>
+			<rightSteerJoint>front_right_steer_joint</rightSteerJoint>
+			
+			<minSteerAngle>${-max_steer_angle}</minSteerAngle>
+			<maxSteerAngle>${max_steer_angle}</maxSteerAngle>
+
+			<leftFrontWheelJoint>front_left_wheel_joint</leftFrontWheelJoint>
+			<rightFrontWheelJoint>front_right_wheel_joint</rightFrontWheelJoint>
+			<leftRearWheelJoint>rear_left_wheel_joint</leftRearWheelJoint>
+			<rightRearWheelJoint>rear_right_wheel_joint</rightRearWheelJoint>
+
+			<wheelDiameter>${wheel_diameter*INCH_2_METER}</wheelDiameter>
+			<wheelTrackWidth>${(wheel_diameter+2*steer_link_length)*INCH_2_METER}</wheelTrackWidth>
+			<wheelBaseLength>${(chassis_length-2*wheel_width)*INCH_2_METER}</wheelBaseLength>
+			
+			<maxWheelTorque>${max_wheel_joint_effort}</maxWheelTorque>
+			<maxSteerVelocity>${max_steer_joint_velocity}</maxSteerVelocity>
+			<minTurnRadius>${min_turn_radius}</minTurnRadius>
+			
+			<commandTopic>cmd_vel</commandTopic>
+			<odometryTopic>odom</odometryTopic>
+			<odometryFrame>odom</odometryFrame>
+			<robotBaseFrame>base_link</robotBaseFrame>
+
+		</plugin>
+		
+	</gazebo>
+
+	<!-- -->
+
+</robot>

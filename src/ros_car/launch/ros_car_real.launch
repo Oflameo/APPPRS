@@ -1,0 +1,66 @@
+<launch>	
+
+	<param name ="use_sim_time" value="false"/>
+
+	<param name="joy_node/dev" value="/dev/input/js0" />
+
+	<node name="joy" pkg="joy" type="joy_node" respawn="true" />
+
+	<param name="axis_linear" value="1" type="int"/>
+	<param name="axis_angular" value="0" type="int"/>
+	<param name="scale_linear" value="1.0" type="double"/>
+	<param name="scale_angular" value="0.5" type="double"/>
+	<param name="start_button" value="0" type="int"/>
+	<param name="stop_button" value="1" type="int"/>
+	<param name="trajectory_name" value="race_track" type="string"/>
+
+	<node name="ros_car_teleop" pkg="ros_car" type="ros_car_teleop_node" args="" respawn="true">/>
+		<remap from="cmd_vel" to="yocs_cmd_vel_mux/input/joystick"/>
+	</node>
+
+	<!-- nodelet manager -->
+	<arg name="nodelet_manager_name"  default="nodelet_manager"/>
+	<node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager_name)" args="manager"/>
+
+	<arg name="config_file" default="$(find ros_car)/param/ros_car_cmd_vel_mux_config.yaml"/>
+
+	<node pkg="nodelet" type="nodelet" name="yocs_cmd_vel_mux"
+		args="load yocs_cmd_vel_mux/CmdVelMuxNodelet $(arg nodelet_manager_name)">
+		<param name="yaml_cfg_file" value="$(arg config_file)"/>
+		<remap from="yocs_cmd_vel_mux/output/cmd_vel" to="cmd_vel" />
+	</node>
+
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node" respawn="true">
+		<param name="port" value="/dev/arduino"/>
+		<param name="baud" value="115200"/>
+	</node>
+
+
+	<node pkg="ros_car" type="ros_car_odometry_publisher_node" name="ros_car_odometry_publisher_node" output="screen" respawn="true" />
+
+	<node pkg="ros_car" type="ros_car_ackermann_publisher_node" name="ros_car_ackermann_publisher_node" output="screen" respawn="true"/>
+
+	<node pkg="tf" type="static_transform_publisher" name="base_laser_broadcaster" args="0 0 0 0 0 0 1 base_link laser_link 100" />
+
+	<node name="hokuyo" pkg="hokuyo_node" type="hokuyo_node" respawn="true" output="screen">
+	  
+		<param name="calibrate_time" type="bool" value="false"/> 
+		
+		<param name="min_ang" type="double" value="-2.35619449"/>
+		<param name="max_ang" type="double" value="2.35619449"/>
+
+		<param name="port" type="string" value="/dev/hokuyo"/> 
+	  
+		<param name="intensity" type="bool" value="false"/>
+
+		<param name="frame_id" type="string" value="/laser_link"/>
+
+	</node>
+
+	<node pkg="laser_filters" type="scan_to_scan_filter_chain" output="screen" name="laser_filter">
+		<rosparam command="load" file="$(find ros_car)/param/lidar_filter.yaml" />
+	</node>
+
+	<node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" />
+
+</launch>

@@ -1,0 +1,10 @@
+<launch>	
+
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen">
+		<param name="port" value="/dev/arduino"/>
+		<param name="baud" value="115200"/>
+	</node>
+
+	<node pkg="ros_car" type="ros_car_ackermann_publisher_node" name="ros_car_ackermann_publisher_node" output="screen" respawn="true"/>
+
+</launch>

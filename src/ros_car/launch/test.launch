@@ -1,0 +1,15 @@
+<launch>
+	
+	<include file="$(find ros_car)/launch/gazebo.launch">
+		<arg name="world_name" value="$(find ros_car)/worlds/aprs_race_track.world"/>
+	</include>
+
+	<!-- Convert an xacro and put on parameter server -->
+	<param name="ros_car" command="$(find xacro)/xacro.py $(find ros_car)/models/ros_car.xacro" />
+
+	<!-- Spawn a robot into Gazebo -->
+	<node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param ros_car -urdf -model ros_car -x -1.5 -y 9.85 -z 0.127"/>
+	
+ 	<include file="$(find ros_car)/launch/includes/move_base.launch.xml" />
+	
+</launch>

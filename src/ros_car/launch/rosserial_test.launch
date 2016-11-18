@@ -1,0 +1,13 @@
+<launch>	
+
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen">
+		<param name="port" value="/dev/arduino"/>
+		<param name="baud" value="115200"/>
+	</node>
+
+	<!-- COMMENT FOLLOWING LINE TO ALLOW CONNECTING CAR WHILE RUNNIGN SIM -->
+	<!-- node pkg="ros_car" type="ros_car_odometry_publisher_node" name="ros_car_odometry_publisher_node" output="screen"  / -->
+
+	
+
+</launch>

@@ -1,0 +1,132 @@
+waypoints:
+  - name: P1
+    frame_id: map
+    pose:
+      position:
+        x: 7.78187570026
+        y: 21.0280356809
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.0233064853229
+        w: 0.999728366979
+  - name: P2
+    frame_id: map
+    pose:
+      position:
+        x: 16.3385057892
+        y: 14.6357488233
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: -0.707258210551
+        w: 0.706955319386
+  - name: P3
+    frame_id: map
+    pose:
+      position:
+        x: 22.1503593149
+        y: 8.33251734311
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.0253035066246
+        w: 0.999679815017
+  - name: P4
+    frame_id: map
+    pose:
+      position:
+        x: 28.1512263771
+        y: -2.73225448067
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: -0.70727991869
+        w: 0.706933601279
+  - name: P5
+    frame_id: map
+    pose:
+      position:
+        x: 21.0285301489
+        y: -12.6753483517
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.883681901289
+        w: 0.468087916245
+  - name: P6
+    frame_id: map
+    pose:
+      position:
+        x: 10.8175309567
+        y: -4.74586151989
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: -0.853464689791
+        w: 0.521150672339
+  - name: P7
+    frame_id: map
+    pose:
+      position:
+        x: -0.187200169267
+        y: -6.66704815296
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.70452443672
+        w: 0.709679729219
+  - name: P8
+    frame_id: map
+    pose:
+      position:
+        x: 7.78187570026
+        y: 21.0280356809
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.0233064853229
+        w: 0.999728366979
+  - name: P9
+    frame_id: map
+    pose:
+      position:
+        x: -0.156511306763
+        y: 4.8120493888
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: 0.707106985912
+        w: 0.707106576461
+  - name: P10
+    frame_id: map
+    pose:
+      position:
+        x: 28.4405879974
+        y: -10.6783494949
+        z: 0
+      orientation:
+        x: 0
+        y: 0
+        z: -0.709432411033
+        w: 0.704773477208
+trajectories:
+  - name: race_track
+    waypoints:
+    - P1
+    - P2
+    - P3
+    - P4
+    - P6
+    - P7
+    - P8
+    - P9

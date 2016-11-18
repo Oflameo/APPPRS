@@ -1,0 +1,87 @@
+<launch>
+
+
+	<param name ="use_sim_time" value="false"/>
+	<param name="joy_node/dev" value="/dev/input/js0" />
+
+	<node name="joy" pkg="joy" type="joy_node" respawn="true" />
+
+	<param name="axis_linear" value="3" type="int"/>
+	<param name="axis_angular" value="0" type="int"/>
+	<param name="scale_linear" value="1.0" type="double"/>
+	<param name="scale_angular" value="0.5" type="double"/>
+	<param name="start_button" value="0" type="int"/>
+	<param name="stop_button" value="1" type="int"/>
+	<param name="trajectory_name" value="race_track" type="string"/>
+
+	<node name="ros_car_teleop" pkg="ros_car" type="ros_car_teleop_node" args="" respawn="true">/>
+		<remap from="cmd_vel" to="yocs_cmd_vel_mux/input/joystick"/>
+	</node>
+
+	<!-- nodelet manager -->
+	<arg name="nodelet_manager_name"  default="nodelet_manager"/>
+	<node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager_name)" args="manager"/>
+
+	<arg name="config_file" default="$(find ros_car)/param/ros_car_cmd_vel_mux_config.yaml"/>
+
+	<node pkg="nodelet" type="nodelet" name="yocs_cmd_vel_mux"
+		args="load yocs_cmd_vel_mux/CmdVelMuxNodelet $(arg nodelet_manager_name)">
+		<param name="yaml_cfg_file" value="$(arg config_file)"/>
+		<remap from="yocs_cmd_vel_mux/output/cmd_vel" to="cmd_vel" />
+	</node>
+
+	<node pkg="laser_filters" type="scan_to_scan_filter_chain" output="screen" name="laser_filter">
+		<rosparam command="load" file="$(find ros_car)/param/lidar_filter.yaml" />
+	</node>
+	
+	<arg name="custom_param_file" default="$(find ros_car)/param/dummy.yaml"/>
+	  <include file="$(find ros_car)/launch/includes/move_base.launch.xml">
+	    <arg name="custom_param_file" value="$(arg custom_param_file)"/>
+	  </include>
+
+	<include file="$(find ros_car)/launch/gazebo.launch">
+		<arg name="world_name" value="$(find ros_car)/worlds/aprs_race_track.world"/>
+	</include>
+
+	<!-- Convert an xacro and put on parameter server -->
+	<param name="ros_car" command="$(find xacro)/xacro.py $(find ros_car)/models/ros_car.xacro" />
+
+	<!-- Spawn a robot into Gazebo -->
+	<node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param ros_car -urdf -model ros_car -x -1.5 -y 9.85 -z 0.127"/>
+
+  <!-- Map server  -->
+  <arg name="map_file" default="$(find ros_car)/maps/track_map.yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" output="screen"/>
+
+  <arg name="waypoints_filename" default="$(find ros_car)/maps/track_map_waypoints.yaml"/>
+  <node pkg="ros_car" name="waypoint_provider" type="waypoint_provider"  output="screen">
+    <param name="filename" value="$(arg waypoints_filename)"/>
+  </node>
+
+  <arg name="frequency"     default="5.0"/>
+  <arg name="close_enough"  default="2.0"/>
+  <arg name="goal_timeout"  default="5*60.0"/>
+  
+  <node name="waypoints_navi" pkg="ros_car" type="waypoints_navi_node" output="screen">
+    <param name="frequency"    value="$(arg frequency)"/>
+    <param name="close_enough" value="$(arg close_enough)"/>
+    <param name="goal_timeout" value="$(arg goal_timeout)"/>
+  </node>
+
+  <arg name="initial_pose_x" default="0.0"/>
+  <arg name="initial_pose_y" default="0.0"/>
+  <arg name="initial_pose_a" default="1.5708"/>
+
+  <include file="$(find ros_car)/launch/includes/amcl.launch.xml">
+    <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
+    <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
+    <arg name="initial_pose_a" value="$(arg initial_pose_a)"/>
+  </include>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d /home/jd/.rviz/ros_car_rviz_config.rviz" respawn="true" output="screen" />
+
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" args="" />
+  
+
+
+</launch>
