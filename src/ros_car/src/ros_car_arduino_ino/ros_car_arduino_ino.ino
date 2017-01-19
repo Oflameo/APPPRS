@@ -3,6 +3,8 @@
 
 #define USE_SW_SERVO
 
+#define USE_STEER_SERVO_PID // Uncomment to use custom steering PID control
+
 //#define USE_FTDI
 
 //#define USE_SMALL_CAR
@@ -55,8 +57,10 @@
 const int tach_pin_A = 18;
 const int tach_pin_B = 19;
 
-const int steering_servo_pin = 11;
-const int speed_servo_pin = 10;
+const int steer_servo_out_pin = 11;
+const int speed_servo_out_pin = 10;
+
+const int steer_servo_in_pin = 2; // Steering angle poteniometer input ADC
 
 const int MPU = 0x68; // I2C address of the MPU-60D0
 
@@ -88,6 +92,14 @@ const int speed_servo_trim = 0;
 
 const float drive_deadband = 0.05; // [m/s] Command velocity below which inputs are zeroed
 
+const int steer_servo_count_min = 0;
+const int steer_servo_count_max = 255;
+const float steer_servo_angle_at_count_min = -60;
+const float steer_servo_angle_at_count_max = 60;
+
+float steer_servo_angle_per_count;
+float steer_servo_angle_offset;
+
 #ifndef USE_SMALL_CAR
   const float tach_dist_per_count = 0.000557231;
 #else
@@ -106,7 +118,13 @@ const float drive_deadband = 0.05; // [m/s] Command velocity below which inputs 
   const float drive_forward_bias = 2.5; //Power required to start motor going forward
   const float drive_backward_bias = 0; //Power required to start motor going in reverse
   const int drive_control_offset = 0;
+  
   const float steering_calibration = -1.5;
+  
+  const float steer_kff = 0.0; // Feedforward 4.5
+  const float steer_kp = 5/0; // Proportional gain
+  const float steer_kd = 0.5; // Derivative gain
+  const float steer_ki = 0.1; // Integral gain
 
 #else
 
@@ -127,12 +145,15 @@ unsigned long last_loop_time = 0; // [ms]
 unsigned long last_imu_update_time = 0; // [ms]
 unsigned long last_publish_time = 0; // [ms]
 
-unsigned long last_tach_time = 0; // [us]
+unsigned long last_tach_read_time = 0; // [us]
+unsigned long last_steer_servo_read_time = 0; // [us]
 unsigned long last_cmd_vel_time = 0; // [us]
-unsigned long last_drive_control_time = 0; // [us]
 unsigned long last_odom_time = 0; // [us]
+unsigned long last_drive_control_time = 0; // [us]
+unsigned long last_steer_control_time = 0; // [us]
 
 int tach_count = 0;
+int steer_servo_count = 0;
 
 float base_speed_cmd = 0.0;
 float base_omega_cmd = 0.0;
@@ -143,10 +164,14 @@ float last_base_speed_cmd = 0.0;
 float last_steer_angle_cmd = 0.0;
 
 // State estimates from sensor measurements
+
+float steer_angle_est = 0.0;
+float steer_angle_speed_est = 0.0;
+
 float base_speed_est = 0.0;
 float base_omega_est = 0.0;
 float base_yaw_est = 0.0;
-float steer_angle_est = 0.0;
+
 float odom_x = 0.0;
 float odom_y = 0.0;
 
@@ -154,6 +179,10 @@ float odom_y = 0.0;
 //float ros_odom_yaw = 0.0;
 
 float drive_int_err = 0.0; // Drive controller integrator error
+float steer_angle_int_err = 0.0; // Steer controller integrator error
+
+float last_drive_err = 0.0;
+float last_steer_angle_err = 0.0;
 
 // IMU PARAMETERS
 
@@ -202,15 +231,17 @@ unsigned int numSamples;
 
 // Note: Variable names use lowercase_underscore convention, Functions use camelCase
 
+void  readSteerAngle( void );
+void  setSteerAngle( float );
+void  setSteerPower ( float );
 void  tachRead( void );
+void  setDrivePower( float );
 float rateLimit( float, float, float, float, float );
 void  updateOdometry( void );
 //void  cmdVelCb( const geometry_msgs::Twist& );
 void  cmdCarCb( const ackermann_msgs::AckermannDrive& );
 void  driveControlUpdate( void );
 void  steerControlUpdate( void );
-void  setSteerAngle( float );
-void  setDrivePower( float );
 void  publishRosMessages( void );
 void  updateIMU( void );
 void  calibrateIMU( void );
@@ -256,10 +287,26 @@ float fsign( float );
 /////////////////////////////////////////////////////////////////////////////////
 // Function Definitions
 
+void readSteerAngle( void )
+{
+  
+    steer_servo_count = analogRead(steer_servo_in_pin);
+    
+    float _steer_angle_est = steer_servo_angle_per_count*float(steer_servo_count) + steer_servo_angle_offset;
+    
+    steer_angle_speed_est = (_steer_angle_est - steer_angle_est)/MICROS_2_SEC(micros() - last_steer_servo_read_time);
+    
+    steer_angle_est = _steer_angle_est;
+    
+    last_steer_servo_read_time = micros(); 
+                  
+}
+
+
 void tachRead( void )
 {
   
-    last_tach_time = micros(); // Update tach_time on each tach pulse event
+    last_tach_read_time = micros(); // Update tach_time on each tach pulse event
     
     if (digitalRead(tach_pin_A) == digitalRead(tach_pin_B))
       tach_count--;
@@ -274,7 +321,7 @@ void tachRead( void )
 void cmdCarCb(const ackermann_msgs::AckermannDrive& _ackermann_msg) {
 
   base_speed_cmd = _ackermann_msg.speed;
-  steer_angle_cmd = steering_calibration * _ackermann_msg.steering_angle; // Published in degrees
+  steer_angle_cmd = _ackermann_msg.steering_angle; // Published in degrees
   
   //double cmd_vel_dt = MICROS_2_SEC(micros() - last_cmd_vel_time);
   
@@ -299,20 +346,20 @@ void cmdCarCb(const ackermann_msgs::AckermannDrive& _ackermann_msg) {
 
 void updateOdometry( void ) {
   
-    unsigned long _last_tach_time;
+    unsigned long _last_tach_read_time;
     unsigned long  _last_odom_time;
     int  _tach_count;
   
     noInterrupts(); // Stop interrupts to prevent race condition during tach update
     
-      _last_tach_time = last_tach_time;
+      _last_tach_read_time = last_tach_read_time;
       _last_odom_time = last_odom_time;
       _tach_count = tach_count;
       tach_count = 0;
     
     interrupts(); // restart interrupts
   
-    double _odom_dt = MICROS_2_SEC(_last_tach_time - _last_odom_time);
+    double _odom_dt = MICROS_2_SEC(_last_tach_read_time - _last_odom_time);
     
     double _odom_dist = _tach_count * tach_dist_per_count; // distance traveled since last odometry update
 
@@ -320,18 +367,11 @@ void updateOdometry( void ) {
             
     last_odom_time = micros();
     
-   
-    
     ////////////////////////////////////////////////////////////////////////////
-    
-
-    
+      
     base_speed_est = _odom_dist/_odom_dt; // Estimated base linear velocity
         
     base_omega_est = GyZ; // TODO Kalman filter to fuse vehicle model / odometry / IMU
-    
-  
-  
     
     // These are reset each time odom message is published
 //    ros_odom_dist += _odom_dist;
@@ -409,11 +449,11 @@ void driveControlUpdate( void )
     // Compute feedback control effort
     float _drive_power = drive_kff*base_speed_cmd + drive_kp*_drive_err;// + drive_ki*drive_int_err; // -100 .. 100
 
-    if (base_speed_cmd > drive_deadband)
+    if (base_speed_cmd > drive_deadband) {
       _drive_power += drive_forward_bias;
-    else if ( base_speed_cmd < -drive_deadband)
+    } else if ( base_speed_cmd < -drive_deadband) {
       _drive_power -= drive_backward_bias;
-    else {
+    } else {
       _drive_power = 0;
       drive_int_err = 0; 
     }
@@ -430,25 +470,57 @@ void driveControlUpdate( void )
 
 void steerControlUpdate( void )
 {     
+  
+   #ifdef USE_STEER_SERVO_PID
+    
+      float _steer_angle_err = steer_angle_cmd - steer_angle_est;
+      
+      float _steer_angle_der_err = (_steer_angle_err - last_steer_angle_err)/(micros() - last_steer_control_time);
+  
+      steer_angle_int_err += _steer_angle_err*MICROS_2_SEC(micros() - last_steer_control_time);
+         
+      float steer_servo_power = steer_kp*_steer_angle_err + steer_kd*_steer_angle_der_err + steer_ki*steer_angle_int_err + steer_kff*steer_angle_cmd; // PID + Feedfoward control law
+      
+      setSteerPower(steer_servo_power);
+      
+      last_steer_angle_err = _steer_angle_err;
+      
+      last_steer_control_time = micros();
+          
+   #else
 
-   setSteerAngle(steer_angle_cmd); 
-
-   nh.loginfo("set angle");
-
+     _steer_angle_cmd = constrain(steering_calibration*_steer_angle_cmd, min_steer_angle, max_steer_angle) + steer_servo_trim + 90;
+     
+     setSteerAngle(_steer_angle_cmd); 
+     
+   #endif
+   
+   // nh.loginfo("set angle");
+   
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 
-void setSteerAngle(float _angle_in)
+void setSteerAngle(float _steer_angle_in) 
 {
   
-  _angle_in = constrain(_angle_in, min_steer_angle, max_steer_angle) + steer_servo_trim + 90;  
-    
-  steer_servo.write(_angle_in);
-  
+    steer_servo.write(_steer_angle_in);
+      
 }
 
 /////////////////////////////////////////////////////////////////////////////////
+
+void setSteerPower(float _power_in)
+{
+  
+  _power_in = constrain(_power_in, min_drive_power, max_drive_power);
+  
+  _power_in = map(_power_in, -100, 100, 0, 180);
+   
+  steer_servo.write(_power_in);
+    
+}
+
 
 void setDrivePower(float _power_in)
 {
@@ -616,7 +688,12 @@ void setup() {
 //  Serial3.begin(57600);
   
 //  Serial3.println("begin setup");
-  
+
+ ////////////////////////////////////////////////////////////////////////////////////
+ 
+ steer_servo_angle_per_count = (steer_servo_angle_at_count_max-steer_servo_angle_at_count_min)/(steer_servo_count_max - steer_servo_count_min);
+ steer_servo_angle_offset = steer_servo_angle_at_count_min - steer_servo_angle_per_count*steer_servo_count_min;
+   
   ///////////////////////////////////////////////////////////////////////////////////
   // TODO set these pins in header file
   
@@ -628,8 +705,8 @@ void setup() {
   
   attachInterrupt(5, tachRead, CHANGE);
   
-  steer_servo.attach(steering_servo_pin);
-  speed_servo.attach(speed_servo_pin);
+  steer_servo.attach(steer_servo_out_pin);
+  speed_servo.attach(speed_servo_out_pin);
   
   // Set pin 52 to high (5v) to act as power for IMU breakout board
 //  pinMode(52,OUTPUT);
@@ -751,6 +828,8 @@ void loop() {
   if ( (millis() - last_imu_update_time) >= imu_update_period ) {
    updateIMU();      
   }
+  
+  readSteerAngle();
 
   updateOdometry();
   
@@ -778,7 +857,7 @@ void loop() {
     SoftwareServo::refresh();
   #endif
 
-  if (micros() > last_tach_time + 1000000)
+  if (micros() > last_tach_read_time + 1000000)
     base_speed_est = 0;
   
   /////////////////////////////////////////////////////////////////////////////////
