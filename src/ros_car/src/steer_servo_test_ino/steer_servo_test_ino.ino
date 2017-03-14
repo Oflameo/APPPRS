@@ -9,26 +9,45 @@
 const int steer_servo_out_pin = 11;
 const int steer_servo_in_pin = 2; // Steering angle poteniometer input ADC
  
-Servo myservo;  // create servo object to control a servo 
+Servo servo;  // create servo object to control a servo 
                 // a maximum of eight servo objects can be created 
  
 int steer_servo_count = 0;
  
 void setup() 
 { 
-  myservo.attach(steer_servo_out_pin);  // attaches the servo on pin 9 to the servo object 
+  servo.attach(steer_servo_out_pin);  // attaches the servo on pin 9 to the servo object 
   Serial.begin(57600);
+  servo.write(95);
 } 
  
  
 void loop() 
 { 
   
-    myservo.write(100);    
+  if (Serial.available()) { 
+  
+    servo.write(110);    
 
+    
+    
+    delay(2000);
+    
+    servo.write(95);
+    
+    delay(500);
+    
     steer_servo_count = analogRead(steer_servo_in_pin);    
     Serial.println(steer_servo_count);
     
-    delay(15);
+    while (Serial.available()){
+      Serial.read();
+    }
+    
+  }
+  
+    
+  
+    
     
 } 
